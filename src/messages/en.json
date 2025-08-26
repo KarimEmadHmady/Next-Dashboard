@@ -1,0 +1,16 @@
+{
+  "dashboard": {
+    "welcome": "Welcome to the dashboard",
+    "logout": "Logout"
+  },
+  "sidebar": {
+    "overview": "Operation manager",
+    "zones": "Zones",
+    "branches": "Stores",
+    "orders": "Orders",
+    "open": "Open sidebar",
+    "areas": "Area Manager",
+    "branchResponsibles": "Store Manager",
+    "branchUser2": "User Store"
+  }
+} 

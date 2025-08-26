@@ -1,0 +1,16 @@
+{
+  "dashboard": {
+    "welcome": "مرحبًا بك في لوحة التحكم",
+    "logout": "تسجيل الخروج"
+  },
+  "sidebar": {
+    "overview": "نظرة عامة",
+    "zones": "المناطق",
+    "branches": "الفروع",
+    "orders": "الطلبات",
+    "open": "افتح القائمة الجانبية",
+    "areas": "المناطق",
+    "branchResponsibles": "مسؤل الفروع",
+    "branchUser2": "مستخدم الفرع"
+  }
+} 

@@ -256,7 +256,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, setSidebarOpen }) => {
               ))}
             </ul>
             {/* Logo under links */}
-            <div className="flex items-center justify-center mt-[100px] py-6">
+            <div className="flex items-center justify-center mt-[-20px] py-6">
               <img src="/logo.png" alt="Logo" className="w-50 h-auto opacity-30" />
             </div>
           </div>

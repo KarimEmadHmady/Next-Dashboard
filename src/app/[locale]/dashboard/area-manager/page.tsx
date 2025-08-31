@@ -1,32 +1,76 @@
 "use client"
 import { motion } from "framer-motion"
 import { useParams } from "next/navigation"
-import { Store, MapPin, User, UserPlus } from "lucide-react"
-import { useState } from "react"
+import { Store, MapPin, User, UserPlus, Globe, BarChart3, Users, TrendingUp } from "lucide-react"
+import { useState, useEffect } from "react"
+import dynamic from "next/dynamic"
 
-const stores = [
+// استيراد مكون الخريطة بشكل ديناميكي لتجنب مشاكل SSR
+const MapComponent = dynamic(() => import("./MapComponent"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-80 bg-gray-100 rounded-xl flex items-center justify-center">
+      <div className="text-gray-500">جاري تحميل الخريطة...</div>
+    </div>
+  )
+})
+
+// بيانات المناطق مع إحداثيات جغرافية
+const areas = [
   {
     id: 1,
-    name: { en: "Store - First Settlement", ar: "المتجر - التجمع الاول" },
-    location: { en: "First Settlement", ar: "التجمع الاول" },
+    name: { en: "First Settlement Area", ar: "منطقة التجمع الأول" },
+    location: { en: "First Settlement", ar: "التجمع الأول" },
+    coordinates: { lat: 30.0275, lng: 31.4913 }, // التجمع الأول
     manager: { en: "Ahmed Hassan", ar: "أحمد حسن" },
     color: "#3b82f6",
+    storesCount: 8,
+    usersCount: 45,
+    performance: 92,
+    population: "125K",
+    area: "15.2 km²"
   },
   {
     id: 2,
-    name: { en: "Store - Dokki", ar: "المتجر - الدقى " },
+    name: { en: "Dokki Area", ar: "منطقة الدقى" },
     location: { en: "Dokki", ar: "الدقى" },
+    coordinates: { lat: 30.0377, lng: 31.2118 }, // الدقي
     manager: { en: "Youssef Ahmed", ar: "يوسف أحمد" },
     color: "#22c55e",
+    storesCount: 12,
+    usersCount: 67,
+    performance: 88,
+    population: "98K",
+    area: "12.8 km²"
   },
   {
     id: 3,
-    name: { en: "Store - Sheraton", ar: "المتجر - شيراتون" },
+    name: { en: "Sheraton Area", ar: "منطقة شيراتون" },
     location: { en: "Sheraton", ar: "شيراتون" },
+    coordinates: { lat: 30.0996, lng: 31.3758 }, // شيراتون
     manager: { en: "Mohamed Youssef", ar: "محمد يوسف" },
     color: "#f59e0b",
+    storesCount: 6,
+    usersCount: 38,
+    performance: 95,
+    population: "76K",
+    area: "9.5 km²"
   },
 ]
+
+type Area = {
+  id: number
+  name: { en: string; ar: string }
+  location: { en: string; ar: string }
+  coordinates: { lat: number; lng: number }
+  manager: { en: string; ar: string }
+  color: string
+  storesCount: number
+  usersCount: number
+  performance: number
+  population: string
+  area: string
+}
 
 type Locale = "ar" | "en"
 type CreatePayload = {
@@ -36,11 +80,13 @@ type CreatePayload = {
   storeId?: string
   role: "STORE_MANAGER" | "USER_STORE"
 }
+
 const availableStores = [
   { id: "first-settlement", label: { en: "Store - First Settlement", ar: "المتجر - التجمع الاول" } },
   { id: "dokki", label: { en: "Store - Dokki", ar: "المتجر - الدقى" } },
   { id: "sheraton", label: { en: "Store - Sheraton", ar: "المتجر - شيراتون" } },
 ]
+
 function CreateCard({ heading, locale, role }: { heading: string; locale: Locale; role: CreatePayload["role"] }) {
   const [form, setForm] = useState<CreatePayload>({ name: "", email: "", password: "", role })
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -159,6 +205,8 @@ function Modal({ open, onClose, children }: { open: boolean; onClose: () => void
   )
 }
 
+
+
 const AreaManagerView = () => {
   const params = useParams()
   const locale: Locale =
@@ -178,73 +226,201 @@ const AreaManagerView = () => {
     },
   ]
 
-  const title = locale === "ar" ? "المتاجر (مدير المناطق)" : "Stores (Area Manager)"
+  const title = locale === "ar" ? "إدارة المناطق" : "Area Management"
   const [open, setOpen] = useState(false)
   const fabPosition = locale === "ar" ? "left-6" : "right-6"
 
   return (
     <div className="min-h-screen p-4 sm:p-6 md:p-8" style={{ backgroundImage: "url('/background.jpg')", backgroundRepeat: 'repeat' }}>
-      <div className="max-w-[1200px] mx-auto">
-        {/* باقي الصفحة (قائمة المتاجر) */}
+      <div className="max-w-[1400px] mx-auto">
+        {/* العنوان الرئيسي */}
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
+          transition={{ duration: 0.6 }}
+          className="text-center mb-8"
         >
-          {stores.map((store, idx) => (
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+            {title}
+          </h1>
+          <p className="text-gray-600 text-lg">
+            {locale === "ar" ? "إدارة وتتبع المناطق الجغرافية والمتاجر" : "Manage and track geographical areas and stores"}
+          </p>
+        </motion.div>
+
+        {/* إحصائيات سريعة */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"
+        >
+          <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Store className="text-blue-600" size={20} />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-gray-900">26</div>
+                <div className="text-sm text-gray-600">{locale === "ar" ? "متجر" : "Stores"}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Users className="text-green-600" size={20} />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-gray-900">150</div>
+                <div className="text-sm text-gray-600">{locale === "ar" ? "مستخدم" : "Users"}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <BarChart3 className="text-orange-600" size={20} />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-gray-900">92%</div>
+                <div className="text-sm text-gray-600">{locale === "ar" ? "أداء" : "Performance"}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <TrendingUp className="text-purple-600" size={20} />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-gray-900">3</div>
+                <div className="text-sm text-gray-600">{locale === "ar" ? "منطقة" : "Areas"}</div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* خريطة المناطق */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="mb-8"
+        >
+          <MapComponent areas={areas} locale={locale} />
+        </motion.div>
+
+        {/* تفاصيل المناطق */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8"
+        >
+          {areas.map((area, idx) => (
             <motion.div
-              key={store.id}
+              key={area.id}
               initial={{ opacity: 0, y: 30, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.1 * idx, ease: "easeOut" }}
-              whileHover={{ y: -4, scale: 1.01, transition: { duration: 0.2 } }}
-              className="bg-white rounded-2xl shadow-lg hover:shadow-xl border border-gray-100 p-5 relative overflow-hidden"
+              whileHover={{ y: -4, scale: 1.02, transition: { duration: 0.2 } }}
+              className="bg-white rounded-2xl shadow-lg hover:shadow-xl border border-gray-100 p-6 relative overflow-hidden"
             >
+              {/* شريط ملون علوي */}
               <div
-                className="absolute inset-x-0 -top-12 h-36 opacity-[0.06]"
-                style={{ background: `radial-gradient(120px 60px at 50% 0%, ${store.color}, transparent)` }}
+                className="absolute inset-x-0 top-0 h-2"
+                style={{ backgroundColor: area.color }}
               />
-              <div className="relative flex items-start gap-4">
+              
+              {/* رأس البطاقة */}
+              <div className="flex items-start gap-4 mb-4">
                 <div
-                  className="flex items-center justify-center w-14 h-14 rounded-xl shadow-sm shrink-0"
-                  style={{ background: store.color }}
+                  className="flex items-center justify-center w-16 h-16 rounded-xl shadow-sm shrink-0"
+                  style={{ backgroundColor: area.color }}
                 >
-                  <Store className="text-white" size={26} />
+                  <MapPin className="text-white" size={28} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-gray-900 font-bold text-lg truncate">{store.name[locale]}</div>
-                  <div className="mt-2 flex items-center gap-2 text-gray-600 text-sm">
-                    <MapPin size={16} className="text-cyan-600" />
-                    <span className="truncate">{store.location[locale]}</span>
+                  <div className="text-gray-900 font-bold text-xl truncate">{area.name[locale]}</div>
+                  <div className="text-gray-600 text-sm mt-1">{area.location[locale]}</div>
+                </div>
+              </div>
+
+              {/* معلومات المنطقة */}
+              <div className="space-y-3 mb-4">
+                <div className="flex items-center gap-2 text-gray-600 text-sm">
+                  <User size={16} className="text-indigo-600" />
+                  <span>{locale === "ar" ? "المدير:" : "Manager:"}</span>
+                  <span className="font-medium">{area.manager[locale]}</span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <div className="text-lg font-bold text-gray-900">{area.storesCount}</div>
+                    <div className="text-xs text-gray-600">{locale === "ar" ? "متجر" : "Stores"}</div>
                   </div>
-                  <div className="mt-1 flex items-center gap-2 text-gray-600 text-sm">
-                    <User size={16} className="text-indigo-600" />
-                    <span className="truncate">{store.manager[locale]}</span>
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <div className="text-lg font-bold text-gray-900">{area.usersCount}</div>
+                    <div className="text-xs text-gray-600">{locale === "ar" ? "مستخدم" : "Users"}</div>
                   </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="text-center p-2 bg-blue-50 rounded-lg">
+                    <div className="text-sm font-semibold text-blue-900">{area.population}</div>
+                    <div className="text-xs text-blue-600">{locale === "ar" ? "سكان" : "Population"}</div>
+                  </div>
+                  <div className="text-center p-2 bg-green-50 rounded-lg">
+                    <div className="text-sm font-semibold text-green-900">{area.area}</div>
+                    <div className="text-xs text-green-600">{locale === "ar" ? "مساحة" : "Area"}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* مؤشر الأداء */}
+              <div className="mb-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-gray-600">{locale === "ar" ? "معدل الأداء" : "Performance"}</span>
+                  <span className="text-sm font-semibold text-gray-900">{area.performance}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="h-2 rounded-full transition-all duration-300"
+                    style={{ 
+                      width: `${area.performance}%`,
+                      backgroundColor: area.color 
+                    }}
+                  />
                 </div>
               </div>
             </motion.div>
           ))}
         </motion.div>
-        {/* زر إضافة مستخدم جديد (صغير + أيقونة) */}
+
+        {/* زر إضافة مستخدم جديد */}
         <div className="w-full flex justify-center mt-12 mb-8">
           <button
             onClick={() => setOpen(true)}
-            className="w-full max-w-md bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg text-base shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
+            className="w-full max-w-md bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-xl text-lg shadow-lg transition-all duration-200 flex items-center justify-center gap-3"
           >
-            <UserPlus size={20} />
+            <UserPlus size={24} />
             {locale === "ar" ? "إضافة مستخدم جديد" : "Add New User"}
           </button>
         </div>
+
         {/* زر عائم دائري */}
         <button
           onClick={() => setOpen(true)}
-          className={`fixed bottom-6 ${fabPosition} z-50 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg w-14 h-14 flex items-center justify-center transition-all duration-200 border-4 border-white`}
+          className={`fixed bottom-6 ${fabPosition} z-50 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg w-16 h-16 flex items-center justify-center transition-all duration-200 border-4 border-white`}
           aria-label={locale === "ar" ? "إضافة مستخدم جديد" : "Add New User"}
         >
-          <UserPlus size={28} />
+          <UserPlus size={32} />
         </button>
+
         <Modal open={open} onClose={() => setOpen(false)}>
           <div className="flex gap-2 mb-4">
             {tabOptions.map((tab) => (

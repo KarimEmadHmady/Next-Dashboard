@@ -1,7 +1,7 @@
 "use client"
 import { motion } from "framer-motion"
 import { useParams } from "next/navigation"
-import { Store, MapPin, User, UserPlus, Globe, BarChart3, Users, TrendingUp } from "lucide-react"
+import { Store, MapPin, User, UserPlus, Globe, BarChart3, Users, TrendingUp, User as UserIcon, Mail } from "lucide-react"
 import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
 
@@ -205,6 +205,51 @@ function Modal({ open, onClose, children }: { open: boolean; onClose: () => void
   )
 }
 
+// بوب أب تفاصيل المنطقة
+function AreaDetailsModal({ open, onClose, area, locale }: { open: boolean; onClose: () => void; area: Area | null; locale: Locale }) {
+  if (!open || !area) return null
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 z-[99999]">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl relative animate-fade-in font-[Cairo] flex flex-col border border-gray-100 max-h-[90vh]">
+        <button onClick={onClose} className="sticky top-0 right-0 self-end z-20 mt-6 mr-6 text-gray-400 hover:text-red-500 text-3xl font-bold bg-white rounded-full">×</button>
+        <div className="overflow-y-auto px-8 pt-2 pb-10" style={{ maxHeight: '80vh' }}>
+          <h2 className="text-3xl font-extrabold text-gray-900 mb-1">{area.name[locale]}</h2>
+          <div className="text-gray-500 mb-6">{area.location[locale]}</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            {/* معلومات أساسية عن مدير المنطقة */}
+            <div className="space-y-3">
+              <div className="text-lg font-bold text-gray-900 mb-2">{locale === 'ar' ? 'بيانات مدير المنطقة' : 'Area Manager Info'}</div>
+              <div className="flex items-center gap-2 text-lg"><span className="font-semibold">{locale === 'ar' ? 'الاسم:' : 'Name:'}</span> <span className="text-gray-900">{area.manager[locale]}</span></div>
+              <div className="flex items-center gap-2 text-lg"><span className="font-semibold">{locale === 'ar' ? 'البريد الإلكتروني:' : 'Email:'}</span> <span className="text-gray-500">{locale === 'ar' ? 'غير متوفر' : 'N/A'}</span></div>
+              <div className="flex items-center gap-2 text-lg"><span className="font-semibold">{locale === 'ar' ? 'رقم الهاتف:' : 'Phone:'}</span> <span className="text-gray-500">{locale === 'ar' ? 'غير متوفر' : 'N/A'}</span></div>
+            </div>
+            {/* معلومات أساسية عن المنطقة/المتاجر */}
+            <div className="space-y-3">
+              <div className="text-lg font-bold text-gray-900 mb-2">{locale === 'ar' ? 'بيانات أساسية' : 'Basic Info'}</div>
+              <div className="flex items-center gap-2 text-lg"><span className="font-semibold">{locale === 'ar' ? 'الموقع:' : 'Location:'}</span> <span className="text-gray-900">{area.location[locale]}</span></div>
+              <div className="flex items-center gap-2 text-lg"><span className="font-semibold">{locale === 'ar' ? 'عدد المتاجر:' : 'Stores:'}</span> <span className="text-gray-900">{area.storesCount}</span></div>
+              <div className="flex items-center gap-2 text-lg"><span className="font-semibold">{locale === 'ar' ? 'عدد المستخدمين:' : 'Users:'}</span> <span className="text-gray-900">{area.usersCount}</span></div>
+            </div>
+          </div>
+          {/* خريطة */}
+          <div>
+            <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm w-full h-56">
+              <iframe
+                title="map"
+                width="100%"
+                height="100%"
+                frameBorder="0"
+                style={{ border: 0 }}
+                src={`https://maps.google.com/maps?q=${area.coordinates.lat},${area.coordinates.lng}&z=13&output=embed`}
+                allowFullScreen
+              ></iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 
 const AreaManagerView = () => {
@@ -229,10 +274,25 @@ const AreaManagerView = () => {
   const title = locale === "ar" ? "إدارة المناطق" : "Area Management"
   const [open, setOpen] = useState(false)
   const fabPosition = locale === "ar" ? "left-6" : "right-6"
+  const [areaManagersExtra, setAreaManagersExtra] = useState<any[]>([])
+  const [selectedAreaItem, setSelectedAreaItem] = useState<Area | null>(null)
+  const [detailsOpen, setDetailsOpen] = useState(false)
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = window.localStorage.getItem("areaManagers") || "[]"
+        const arr = JSON.parse(raw)
+        if (Array.isArray(arr)) setAreaManagersExtra(arr)
+      } catch {}
+    }
+  }, [])
 
   return (
     <div className="min-h-screen p-4 sm:p-6 md:p-8" style={{ backgroundImage: "url('/background.jpg')", backgroundRepeat: 'repeat' }}>
       <div className="max-w-[1400px] mx-auto">
+        {/* بوب أب التفاصيل */}
+        <AreaDetailsModal open={detailsOpen} onClose={() => setDetailsOpen(false)} area={selectedAreaItem} locale={locale} />
         {/* العنوان الرئيسي */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -328,7 +388,8 @@ const AreaManagerView = () => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.1 * idx, ease: "easeOut" }}
               whileHover={{ y: -4, scale: 1.02, transition: { duration: 0.2 } }}
-              className="bg-white rounded-2xl shadow-lg hover:shadow-xl border border-gray-100 p-6 relative overflow-hidden"
+              className="bg-white rounded-2xl shadow-lg hover:shadow-xl border border-gray-100 p-6 relative overflow-hidden cursor-pointer"
+              onClick={() => { setSelectedAreaItem(area); setDetailsOpen(true); }}
             >
               {/* شريط ملون علوي */}
               <div
@@ -415,7 +476,7 @@ const AreaManagerView = () => {
         {/* زر عائم دائري */}
         <button
           onClick={() => setOpen(true)}
-          className={`fixed bottom-6 ${fabPosition} z-50 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg w-16 h-16 flex items-center justify-center transition-all duration-200 border-4 border-white`}
+          className={`fixed bottom-6 ${fabPosition} z-50 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg w-16 h-16 flex items-center justify-center transition-all duration-200 border-4 border-white z-[99999]`}
           aria-label={locale === "ar" ? "إضافة مستخدم جديد" : "Add New User"}
         >
           <UserPlus size={32} />
@@ -439,6 +500,25 @@ const AreaManagerView = () => {
             role={selectedRole}
           />
         </Modal>
+
+        {/* قائمة مديري المناطق من localStorage */}
+        {areaManagersExtra.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mt-12">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">{locale === "ar" ? "مديرو المناطق (محلي)" : "Area Managers (Local)"}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {areaManagersExtra.map((m: any, idx: number) => (
+                <div key={idx} className="bg-gray-50 rounded-xl p-4 border border-gray-100 flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600"><UserIcon size={18} /></div>
+                  <div className="min-w-0">
+                    <div className="font-semibold text-gray-900 truncate">{m.name}</div>
+                    {m.email && <div className="text-sm text-gray-600 flex items-center gap-1 truncate"><Mail size={14} className="text-gray-400" />{m.email}</div>}
+                    {m.storeId && <div className="text-xs text-gray-500 mt-1">{locale === "ar" ? "متجر:" : "Store:"} {m.storeId}</div>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -229,7 +229,7 @@ const MapComponent = ({ areas, locale }: MapComponentProps) => {
   }, [areas, locale])
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 to-gray-100 rounded-2xl p-6 border border-gray-200 shadow-lg">
+    <div className="bg-gradient-to-br from-slate-50 to-gray-100 rounded-2xl p-6 border border-gray-200 shadow-lg ">
       <div className="flex items-center gap-2 mb-6">
         <Globe className="text-blue-600" size={24} />
         <h3 className="text-xl font-bold text-gray-900">

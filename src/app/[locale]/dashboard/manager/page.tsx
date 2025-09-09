@@ -84,6 +84,36 @@ function Modal({ open, onClose, children }: { open: boolean; onClose: () => void
   )
 }
 
+function OrderDetailsModal({ open, onClose, order, locale }: { open: boolean; onClose: () => void; order: LatestOrder | null; locale: "ar" | "en" }) {
+  if (!open || !order) return null
+  const meta = statusMeta[order.status]
+  const salesPerson = locale === "ar" ? "موظف المبيعات: غير محدد" : "Sales: N/A"
+  const areaManager = order.manager[locale]
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl relative animate-fade-in font-[Cairo] flex flex-col border border-gray-100 max-h-[90vh]">
+        <button onClick={onClose} className="sticky top-0 right-0 self-end z-20 mt-6 mr-6 text-gray-400 hover:text-red-500 text-3xl font-bold bg-white rounded-full">×</button>
+        <div className="overflow-y-auto px-8 pt-2 pb-8" style={{ maxHeight: '80vh' }}>
+          <h2 className="text-3xl font-extrabold text-gray-900 mb-1">{order.id}</h2>
+          <div className={`inline-flex items-center gap-2 border rounded-full px-3 py-1 text-xs font-medium mb-6 ${meta.className}`}>
+            <span className={`w-2 h-2 rounded-full ${meta.dot}`} /> {meta[locale]}
+          </div>
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-lg"><span className="font-semibold">{locale === 'ar' ? 'الفرع:' : 'Branch:'}</span> <span className="text-gray-900">{order.branch[locale]}</span></div>
+            <div className="flex items-center gap-2 text-lg"><span className="font-semibold">{locale === 'ar' ? 'مدير المنطقة:' : 'Area Manager:'}</span> <span className="text-gray-900">{areaManager}</span></div>
+            <div className="flex items-center gap-2 text-lg"><span className="font-semibold">{locale === 'ar' ? 'المبيعات:' : 'Sales:'}</span> <span className="text-gray-500">{salesPerson}</span></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center gap-2 text-lg"><span className="font-semibold">{locale === 'ar' ? 'التاريخ:' : 'Date:'}</span> <span className="text-gray-900">{order.date}</span></div>
+              <div className="flex items-center gap-2 text-lg"><span className="font-semibold">{locale === 'ar' ? 'الوقت:' : 'Time:'}</span> <span className="text-gray-900">{order.time}</span></div>
+            </div>
+            <div className="flex items-center gap-2 text-lg"><span className="font-semibold">{locale === 'ar' ? 'الإجمالي:' : 'Total:'}</span> <span className="text-blue-700 font-bold">{order.total} L.E</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const ManagerView = () => {
   const params = useParams()
   const locale: "ar" | "en" =
@@ -99,6 +129,8 @@ const ManagerView = () => {
   const [progress3, setProgress3] = useState(0)
   const [open, setOpen] = useState(false)
   const fabPosition = locale === "ar" ? "left-6" : "right-6"
+  const [orderModalOpen, setOrderModalOpen] = useState(false)
+  const [selectedOrder, setSelectedOrder] = useState<LatestOrder | null>(null)
 
   useEffect(() => {
     const checkScreen = () => setIsSmallScreen(window.innerWidth <= 500)
@@ -420,54 +452,55 @@ const ManagerView = () => {
             </motion.div>
           </motion.div>
 
-          {/* Latest Orders Table */}
+          {/* Latest Orders Cards (vertical) */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.9, ease: "easeOut" }}
-            className={`bg-white rounded-2xl shadow-lg ${small ? "max-w-[300px] mx-auto p-5" : "p-8"} overflow-x-auto`}
+            className={`bg-white rounded-2xl shadow-lg ${small ? "max-w-[300px] mx-auto p-5" : "p-8"}`}
           >
             <div className={`font-extrabold mb-4 text-gray-900 ${small ? "text-xl" : "2xl"}`}>
               {locale === "ar" ? "أحدث الطلبات" : "Latest Orders"}
             </div>
-            <table
-              className={`w-full border-collapse text-gray-800 ${small ? "text-sm" : "base"} min-w-[700px]`}
-            >
-              <thead>
-                <tr>
-                  <th className="border border-gray-200 bg-gray-100 text-gray-700 p-3 font-semibold text-left rounded-tl-lg">#</th>
-                  <th className="border border-gray-200 bg-gray-100 text-gray-700 p-3 font-semibold text-left">{locale === "ar" ? "رقم الطلب" : "Order ID"}</th>
-                  <th className="border border-gray-200 bg-gray-100 text-gray-700 p-3 font-semibold text-left">{locale === "ar" ? "الفرع" : "Branch"}</th>
-                  <th className="border border-gray-200 bg-gray-100 text-gray-700 p-3 font-semibold text-left">{locale === "ar" ? "المدير" : "Manager"}</th>
-                  <th className="border border-gray-200 bg-gray-100 text-gray-700 p-3 font-semibold text-left">{locale === "ar" ? "الوقت" : "Time"}</th>
-                  <th className="border border-gray-200 bg-gray-100 text-gray-700 p-3 font-semibold text-left">{locale === "ar" ? "التاريخ" : "Date"}</th>
-                  <th className="border border-gray-200 bg-gray-100 text-gray-700 p-3 font-semibold text-left">{locale === "ar" ? "الحالة" : "Status"}</th>
-                  <th className="border border-gray-200 bg-gray-100 text-gray-700 p-3 font-semibold text-left rounded-tr-lg">{locale === "ar" ? "الإجمالي" : "Total"}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {latestOrders.map((order: LatestOrder, idx: number) => {
-                  const meta = statusMeta[order.status]
-                  return (
-                    <tr key={order.id} className={idx % 2 === 0 ? "bg-gray-50" : "bg-white"}>
-                      <td className="border border-gray-200 p-3 font-bold">{idx + 1}</td>
-                      <td className="border border-gray-200 p-3 font-mono text-xs">{order.id}</td>
-                      <td className="border border-gray-200 p-3 flex items-center gap-2"><Store size={14} className="text-cyan-600" />{order.branch[locale]}</td>
-                      <td className="border border-gray-200 p-3 flex items-center gap-2"><User size={14} className="text-indigo-600" />{order.manager[locale]}</td>
-                      <td className="border border-gray-200 p-3"><Clock size={13} className="inline mr-1 text-gray-400" />{order.time}</td>
-                      <td className="border border-gray-200 p-3"><CalendarDays size={13} className="inline mr-1 text-gray-400" />{order.date}</td>
-                      <td className="border border-gray-200 p-3">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-medium ${meta.className}`}>
-                          <span className={`w-2 h-2 rounded-full ${meta.dot}`}></span>
+            <div className="flex flex-col gap-3">
+              {latestOrders.map((order: LatestOrder, idx: number) => {
+                const meta = statusMeta[order.status]
+                return (
+                  <div
+                    key={order.id}
+                    className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition cursor-pointer"
+                    onClick={() => { setSelectedOrder(order); setOrderModalOpen(true); }}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-gray-900 font-bold text-base truncate">{order.id}</div>
+                        <div className={`mt-1.5 inline-flex items-center gap-2 border rounded-full px-2 py-0.5 text-[10px] font-medium ${meta.className}`}>
+                          <span className={`w-2 h-2 rounded-full ${meta.dot}`} />
                           {meta[locale]}
-                        </span>
-                      </td>
-                      <td className="border border-gray-200 p-3 font-bold text-gray-900">{order.total} <span className="text-xs text-gray-500">L.E</span></td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+                        </div>
+                      </div>
+                      <div className="text-right text-xs text-gray-500">
+                        <div>{locale === 'ar' ? 'الوقت' : 'Time'}: <span className="text-gray-800 font-medium">{order.time}</span></div>
+                        <div className="mt-1">{locale === 'ar' ? 'التاريخ' : 'Date'}: <span className="text-gray-800 font-medium">{order.date}</span></div>
+                      </div>
+                    </div>
+                    <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                      <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-2.5 py-1.5">
+                        <Store size={14} className="text-cyan-600" />
+                        <div className="text-xs text-gray-700 truncate">{order.branch[locale]}</div>
+                      </div>
+                      <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-2.5 py-1.5">
+                        <User size={14} className="text-indigo-600" />
+                        <div className="text-xs text-gray-700 truncate">{order.manager[locale]}</div>
+                      </div>
+                      <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-2.5 py-1.5">
+                        <div className="text-xs text-gray-700 truncate font-semibold">{order.total} <span className="text-[10px] text-gray-500">L.E</span></div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           </motion.div>
           {/* زر إضافة مستخدم جديد (صغير + أيقونة) */}
           <div className="w-full flex justify-center mt-12 mb-8">
@@ -490,6 +523,7 @@ const ManagerView = () => {
           <Modal open={open} onClose={() => setOpen(false)}>
             <UserManagementForms locale={locale} />
           </Modal>
+          <OrderDetailsModal open={orderModalOpen} onClose={() => setOrderModalOpen(false)} order={selectedOrder} locale={locale} />
         </div>
       </div>
     </>
@@ -618,6 +652,45 @@ function CreateCard({
   // Toast state
   const [showToast, setShowToast] = useState(false)
   const [toastMsg, setToastMsg] = useState("")
+  // --- NEW: users state ---
+  const [users, setUsers] = useState<CreatePayload[]>(() => {
+    if (typeof window !== "undefined") {
+      const key =
+        role === "AREA_MANAGER"
+          ? "areaManagers"
+          : role === "STORE_MANAGER"
+          ? "storeManagers"
+          : "userStores"
+      return JSON.parse(localStorage.getItem(key) || "[]")
+    }
+    return []
+  })
+
+  // --- NEW: sync users to localStorage ---
+  useEffect(() => {
+    const key =
+      role === "AREA_MANAGER"
+        ? "areaManagers"
+        : role === "STORE_MANAGER"
+        ? "storeManagers"
+        : "userStores"
+    if (typeof window !== "undefined") {
+      localStorage.setItem(key, JSON.stringify(users))
+    }
+  }, [users, role])
+
+  // --- NEW: update users if role changes (tab switch) ---
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const key =
+        role === "AREA_MANAGER"
+          ? "areaManagers"
+          : role === "STORE_MANAGER"
+          ? "storeManagers"
+          : "userStores"
+      setUsers(JSON.parse(localStorage.getItem(key) || "[]"))
+    }
+  }, [role])
 
   // Get stores for selected area (for AREA_MANAGER)
   const storesForArea = selectedArea
@@ -634,9 +707,9 @@ function CreateCard({
     e.preventDefault()
     setIsSubmitting(true)
     try {
-      // Replace with real API call later
-      console.log("Create User Payload:", form)
-      await new Promise((r) => setTimeout(r, 600))
+      // --- NEW: add user to localStorage ---
+      const newUser = { ...form, storeId: requireStore ? form.storeId : undefined }
+      setUsers((prev) => [...prev, newUser])
       setToastMsg(locale === "ar" ? "تم إنشاء المستخدم بنجاح " : "User created successfully ")
       setShowToast(true)
       setForm({ name: "", email: "", password: "", role, storeId: requireStore ? form.storeId : undefined })

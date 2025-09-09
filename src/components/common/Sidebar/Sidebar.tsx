@@ -203,14 +203,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, setSidebarOpen }) => {
             <div className="absolute inset-0 bg-white/40" />
             <div className="relative flex flex-col items-center gap-2">
               {userProfile ? (
-                <div className="flex flex-col items-center gap-2">
-                  <img
-                    src={userProfile.avatarUrl || "/avatar.webp"}
-                    alt={userProfile.name}
-                    className="w-16 h-16 rounded-full object-cover shadow-sm border border-white"
-                  />
+                <Link href={`/${locale}/dashboard/profile`} className="flex flex-col items-center gap-2 group cursor-pointer relative">
+                  <div className="relative">
+                    <img
+                      src={userProfile.avatarUrl || "/avatar.webp"}
+                      alt={userProfile.name}
+                      className="w-16 h-16 rounded-full object-cover shadow-sm border border-white group-hover:ring-2 group-hover:ring-red-400 transition"
+                    />
+                    <span className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full shadow-md"></span>
+                  </div>
                   <div className="text-center">
-                    <p className="text-sm font-medium text-gray-900 leading-none">{userProfile.name}</p>
+                    <p className="text-sm font-medium text-gray-900 leading-none group-hover:text-red-600 transition">{userProfile.name}</p>
                     <p className="text-xs text-gray-500 mt-0.5">
                       {(() => {
                         const matched = sidebarLinks.find((l) => pathname.includes(`/dashboard/${l.href}`))
@@ -218,7 +221,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, setSidebarOpen }) => {
                       })()}
                     </p>
                   </div>
-                </div>
+                </Link>
               ) : (
                 <div className="flex flex-col items-center gap-2">
                   <div className="relative">

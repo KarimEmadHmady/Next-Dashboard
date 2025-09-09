@@ -1,8 +1,10 @@
 "use client"
 import { motion } from "framer-motion"
 import { useParams } from "next/navigation"
-import { User, Store, Users, MapPin, UserPlus } from "lucide-react"
+import { User, Store, Users, MapPin, UserPlus, Mail, Phone, Calendar, Star, Store as FiStore } from "lucide-react"
 import { useState } from "react"
+import { FiX, FiUser, FiUsers, FiMapPin, FiList, FiShoppingCart } from "react-icons/fi"
+import React from "react"
 
 type StoreManager = {
   id: number
@@ -17,6 +19,63 @@ const managers: StoreManager[] = [
   { id: 2, name: { en: "Youssef Ahmed", ar: "يوسف أحمد" }, branch: { en: "Store - Dokki", ar: "المتجر - الدقى" }, employees: 9, color: "#6366f1" },
   { id: 3, name: { en: "Mohamed Youssef", ar: "محمد يوسف" }, branch: { en: "Store - Sheraton", ar: "المتجر - شيراتون" }, employees: 7, color: "#06b6d4" },
 ]
+
+// بيانات وهمية للموظفين والأوردرات
+const fakeStaff = [
+  { id: 1, name: { en: "Omar Ali", ar: "عمر علي" }, role: { en: "Sales", ar: "مبيعات" } },
+  { id: 2, name: { en: "Nour Ahmed", ar: "نور أحمد" }, role: { en: "Cashier", ar: "كاشير" } },
+  { id: 3, name: { en: "Mahmoud Farid", ar: "محمود فريد" }, role: { en: "Sales Lead", ar: "مسؤول مبيعات" } },
+];
+const fakeOrders = [
+  { id: "ORD-10231", date: "2025-08-18", total: 320, status: "completed" },
+  { id: "ORD-10232", date: "2025-08-17", total: 210, status: "pending" },
+];
+const fakeLocation = { lat: 30.0275, lng: 31.4913, address: { en: "First Settlement, Cairo", ar: "التجمع الأول، القاهرة" } };
+
+function ManagerModal({ open, onClose, manager, locale }: { open: boolean; onClose: () => void; manager: StoreManager | null; locale: 'ar' | 'en' }) {
+  if (!open || !manager) return null;
+  // بيانات وهمية للمانجر
+  const fakeManager = {
+    email: 'manager@example.com',
+    phone: '+201234567890',
+    role: locale === 'ar' ? 'مدير فرع' : 'Branch Manager',
+    hiredAt: '2022-01-10',
+    rating: 4.8,
+    avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(manager.name[locale])}&background=6366f1&color=fff&size=256`,
+  };
+  // بيانات مختصرة عن الاستور
+  const fakeLocation = { address: { en: manager.branch.en + ', Cairo', ar: manager.branch.ar + '، القاهرة' } };
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl relative animate-fade-in font-[Cairo] flex flex-col border border-gray-100 max-h-[90vh]">
+        <button onClick={onClose} className="sticky top-0 right-0 self-end z-20 mt-6 mr-6 text-gray-400 hover:text-red-500 text-3xl font-bold bg-white rounded-full"><FiX /></button>
+        <div className="overflow-y-auto px-8 pt-2 pb-10" style={{ maxHeight: '80vh' }}>
+          {/* صورة المانجر */}
+          <div className="flex flex-col items-center mb-6 mt-2">
+            <img src={fakeManager.avatar} alt={manager.name[locale]} className="w-32 h-32 rounded-full border-4 border-indigo-200 shadow-xl object-cover bg-white mb-2" />
+            <h2 className="text-3xl font-extrabold text-gray-900 mb-1 flex items-center gap-2">{manager.name[locale]}</h2>
+            <div className="text-lg text-indigo-500 mb-2">{fakeManager.role}</div>
+            <div className="flex gap-4 text-gray-500 text-base mb-2">
+              <span><Mail className="inline mr-1 text-blue-400" /> {fakeManager.email}</span>
+              <span><Phone className="inline mr-1 text-green-500" /> {fakeManager.phone}</span>
+            </div>
+            <div className="flex gap-4 text-gray-500 text-base mb-2">
+              <span><Calendar className="inline mr-1 text-orange-400" /> {locale === 'ar' ? 'تاريخ التعيين:' : 'Hired at:'} {fakeManager.hiredAt}</span>
+              <span className="text-yellow-500 font-bold"><Star className="inline mr-1" /> {locale === 'ar' ? 'تقييم:' : 'Rating:'} {fakeManager.rating}</span>
+            </div>
+          </div>
+          {/* بيانات مختصرة عن الاستور */}
+          <div className="bg-indigo-50 rounded-2xl p-6 mb-2 flex flex-col items-start border border-indigo-100">
+            <h3 className="text-xl font-bold text-indigo-700 mb-2 flex items-center gap-2"><FiStore className="text-indigo-400" />{locale === 'ar' ? 'بيانات الفرع' : 'Store Info'}</h3>
+            <div className="mb-2 flex items-center gap-2 text-base text-gray-700"><FiMapPin className="text-red-400" /> <span className="font-semibold">{locale === 'ar' ? 'الفرع:' : 'Branch:'}</span> <span>{manager.branch[locale]}</span></div>
+            <div className="mb-2 flex items-center gap-2 text-base text-gray-700"><FiMapPin className="text-cyan-500" /> <span className="font-semibold">{locale === 'ar' ? 'العنوان:' : 'Address:'}</span> <span>{fakeLocation.address[locale]}</span></div>
+            <div className="mb-2 flex items-center gap-2 text-base text-gray-700"><FiUsers className="text-emerald-500" /> <span className="font-semibold">{locale === 'ar' ? 'عدد الموظفين:' : 'Employees:'}</span> <span>{manager.employees}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 type Locale = "ar" | "en"
 type CreatePayload = {
@@ -150,6 +209,24 @@ function CreateCard({ locale, onSuccess }: { locale: Locale; onSuccess?: () => v
   )
 }
 
+// خريطة أسماء المتاجر حسب المعرف
+const storeLabelById: Record<string, { en: string; ar: string }> = {
+  "first-settlement": { en: "Store - First Settlement", ar: "المتجر - التجمع الاول" },
+  dokki: { en: "Store - Dokki", ar: "المتجر - الدقى" },
+  sheraton: { en: "Store - Sheraton", ar: "المتجر - شيراتون" },
+}
+
+function mapStoreManager(u: any, nextIdStart: number): StoreManager {
+  const store = u.storeId && storeLabelById[u.storeId] ? storeLabelById[u.storeId] : { en: "Store", ar: "متجر" }
+  return {
+    id: nextIdStart,
+    name: { en: String(u.name || "Store Manager"), ar: String(u.name || "مدير المتجر") },
+    branch: store,
+    employees: 0,
+    color: "#6366f1",
+  }
+}
+
 const BranchResponsibleView = () => {
   const params = useParams()
   const locale: Locale =
@@ -161,12 +238,31 @@ const BranchResponsibleView = () => {
   const branchLabel = locale === "ar" ? "مسؤول عن" : "Responsible for"
   const employeesLabel = locale === "ar" ? "عدد الموظفين" : "Employees"
   const [open, setOpen] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedManager, setSelectedManager] = useState<StoreManager | null>(null);
+  const [extraManagers, setExtraManagers] = useState<StoreManager[]>([])
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = window.localStorage.getItem("storeManagers") || "[]"
+        const arr = JSON.parse(raw)
+        if (Array.isArray(arr)) {
+          const mapped: StoreManager[] = arr.map((u: any, idx: number) => mapStoreManager(u, 10000 + idx))
+          setExtraManagers(mapped)
+        }
+      } catch {}
+    }
+  }, [])
+
+  const allManagers: StoreManager[] = React.useMemo(() => [...extraManagers, ...managers], [extraManagers])
 
   // تحديد مكان الزر العائم حسب اللغة
   const fabPosition = locale === "ar" ? "left-6" : "right-6"
 
   return (
     <div className="min-h-screen  p-4 sm:p-6 md:p-8" style={{ backgroundImage: "url('/background.jpg')", backgroundRepeat: 'repeat' }}>
+      <ManagerModal open={modalOpen} onClose={() => setModalOpen(false)} manager={selectedManager} locale={locale} />
       <div className="max-w-[1200px] mx-auto">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -199,14 +295,15 @@ const BranchResponsibleView = () => {
           transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
           className="grid grid-cols-1 md:grid-cols-3 gap-5"
         >
-          {managers.map((m, idx) => (
+          {allManagers.map((m, idx) => (
             <motion.div
               key={m.id}
               initial={{ opacity: 0, y: 30, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.1 * idx, ease: "easeOut" }}
               whileHover={{ y: -4, scale: 1.01, transition: { duration: 0.2 } }}
-              className="bg-white rounded-2xl shadow-lg hover:shadow-xl border border-gray-100 p-5 relative overflow-hidden"
+              className="bg-white rounded-2xl shadow-lg hover:shadow-xl border border-gray-100 p-5 relative overflow-hidden cursor-pointer"
+              onClick={() => { setSelectedManager(m); setModalOpen(true); }}
             >
               <div
                 className="absolute inset-x-0 -top-12 h-36 opacity-[0.06]"

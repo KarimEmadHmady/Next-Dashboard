@@ -2,6 +2,8 @@
 import { motion } from "framer-motion"
 import { useParams } from "next/navigation"
 import { Store, Users, User, MapPin } from "lucide-react"
+import { useState } from "react"
+import { FiX, FiUser, FiUsers, FiMapPin, FiList, FiShoppingCart } from "react-icons/fi"
 
 type Branch = {
   id: number
@@ -18,6 +20,98 @@ const branches: Branch[] = [
   { id: 3, name: { en: "Store - Sheraton", ar: "المتجر - شيراتون" }, location: { en: "Sheraton", ar: "شيراتون" }, manager: { en: "Mohamed Youssef", ar: "محمد يوسف" }, employees: 7, color: "#22c55e" },
 ]
 
+// بيانات وهمية للموظفين والأوردرات
+const fakeStaff = [
+  { id: 1, name: { en: "Omar Ali", ar: "عمر علي" }, role: { en: "Sales", ar: "مبيعات" } },
+  { id: 2, name: { en: "Nour Ahmed", ar: "نور أحمد" }, role: { en: "Cashier", ar: "كاشير" } },
+  { id: 3, name: { en: "Mahmoud Farid", ar: "محمود فريد" }, role: { en: "Sales Lead", ar: "مسؤول مبيعات" } },
+];
+const fakeOrders = [
+  { id: "ORD-10231", date: "2025-08-18", total: 320, status: "completed" },
+  { id: "ORD-10232", date: "2025-08-17", total: 210, status: "pending" },
+];
+const fakeLocation = { lat: 30.0275, lng: 31.4913, address: { en: "First Settlement, Cairo", ar: "التجمع الأول، القاهرة" } };
+
+function StoreModal({ open, onClose, store, locale }: { open: boolean; onClose: () => void; store: Branch | null; locale: 'ar' | 'en' }) {
+  if (!open || !store) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl relative animate-fade-in font-[Cairo] flex flex-col border border-gray-100 max-h-[90vh]">
+        <button onClick={onClose} className="sticky top-0 right-0 self-end z-20 mt-6 mr-6 text-gray-400 hover:text-red-500 text-3xl font-bold bg-white rounded-full"><FiX /></button>
+        <div className="overflow-y-auto px-10 pt-2 pb-10" style={{ maxHeight: '80vh' }}>
+          <h2 className="text-4xl font-extrabold text-gray-900 mb-2 flex items-center gap-2 mt-2"><Store className="text-orange-400" />{store.name[locale]}</h2>
+          <div className="mb-6 text-lg text-gray-600 flex items-center gap-2"><FiUser className="text-blue-400" />{locale === 'ar' ? 'مدير الفرع:' : 'Manager:'} <span className="font-bold text-gray-900">{store.manager[locale]}</span></div>
+          <div className="mb-8 flex flex-col md:flex-row gap-8 w-full">
+            {/* بيانات الفرع */}
+            <div className="flex-1 space-y-3">
+              <div className="flex items-center gap-2 text-lg"><FiUsers className="text-emerald-500" /> <span className="font-semibold">{locale === 'ar' ? 'عدد الموظفين:' : 'Employees:'}</span> <span>{store.employees}</span></div>
+              <div className="flex items-center gap-2 text-lg"><FiMapPin className="text-red-500" /> <span className="font-semibold">{locale === 'ar' ? 'العنوان:' : 'Address:'}</span> <span>{fakeLocation.address[locale]}</span></div>
+              <div className="flex items-center gap-2 text-lg"><FiList className="text-indigo-500" /> <span className="font-semibold">{locale === 'ar' ? 'كود الفرع:' : 'Branch ID:'}</span> <span>{store.id}</span></div>
+            </div>
+            {/* خريطة الموقع */}
+            <div className="flex-1 min-w-[250px]">
+              <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm w-full h-56">
+                <iframe
+                  title="map"
+                  width="100%"
+                  height="100%"
+                  frameBorder="0"
+                  style={{ border: 0 }}
+                  src={`https://maps.google.com/maps?q=${fakeLocation.lat},${fakeLocation.lng}&z=15&output=embed`}
+                  allowFullScreen
+                ></iframe>
+              </div>
+            </div>
+          </div>
+          {/* الموظفين */}
+          <div className="mb-8">
+            <h3 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2"><FiUsers className="text-emerald-500" />{locale === 'ar' ? 'الموظفون' : 'Staff'}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {fakeStaff.map((s) => (
+                <div key={s.id} className="bg-gray-50 rounded-xl p-4 flex items-center gap-4 border border-gray-100">
+                  <FiUser className="text-blue-400" size={28} />
+                  <div>
+                    <div className="font-bold text-lg text-gray-900">{s.name[locale]}</div>
+                    <div className="text-gray-600 text-base">{s.role[locale]}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* الأوردرات */}
+          <div className="mb-2">
+            <h3 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2"><FiShoppingCart className="text-indigo-500" />{locale === 'ar' ? 'الطلبات' : 'Orders'}</h3>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-base border border-gray-200 rounded-xl overflow-hidden">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="px-4 py-2 text-gray-700 font-semibold">{locale === 'ar' ? 'رقم الطلب' : 'Order ID'}</th>
+                    <th className="px-4 py-2 text-gray-700 font-semibold">{locale === 'ar' ? 'التاريخ' : 'Date'}</th>
+                    <th className="px-4 py-2 text-gray-700 font-semibold">{locale === 'ar' ? 'الإجمالي' : 'Total'}</th>
+                    <th className="px-4 py-2 text-gray-700 font-semibold">{locale === 'ar' ? 'الحالة' : 'Status'}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {fakeOrders.map((o) => (
+                    <tr key={o.id} className="border-t">
+                      <td className="px-4 py-2 text-gray-900 font-bold">{o.id}</td>
+                      <td className="px-4 py-2">{o.date}</td>
+                      <td className="px-4 py-2 text-blue-700 font-bold">{o.total} L.E</td>
+                      <td className="px-4 py-2">
+                        <span className={`inline-block rounded-full px-3 py-1 text-xs font-bold ${o.status === 'completed' ? 'bg-green-100 text-green-700' : o.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-200 text-gray-700'}`}>{o.status}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const BranchManagerView = () => {
   const params = useParams()
   const locale: "ar" | "en" =
@@ -29,8 +123,12 @@ const BranchManagerView = () => {
   const employeesLabel = locale === "ar" ? "عدد العاملين" : "Employees"
   const managerLabel = locale === "ar" ? "مدير المتجر" : "Manager"
 
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedStore, setSelectedStore] = useState<Branch | null>(null);
+
   return (
     <div className="min-h-screen  p-4 sm:p-6 md:p-8" style={{ backgroundImage: "url('/background.jpg')", backgroundRepeat: 'repeat' }}>
+      <StoreModal open={modalOpen} onClose={() => setModalOpen(false)} store={selectedStore} locale={locale} />
       <div className="max-w-[1200px] mx-auto">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -70,7 +168,8 @@ const BranchManagerView = () => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.1 * idx, ease: "easeOut" }}
               whileHover={{ y: -4, scale: 1.01, transition: { duration: 0.2 } }}
-              className="bg-white rounded-2xl shadow-lg hover:shadow-xl border border-gray-100 p-5 relative overflow-hidden"
+              className="bg-white rounded-2xl shadow-lg hover:shadow-xl border border-gray-100 p-5 relative overflow-hidden cursor-pointer"
+              onClick={() => { setSelectedStore(b); setModalOpen(true); }}
             >
               <div
                 className="absolute inset-x-0 -top-12 h-36 opacity-[0.06]"

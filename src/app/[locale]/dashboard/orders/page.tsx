@@ -3,6 +3,7 @@ import { motion } from "framer-motion"
 import { useParams } from "next/navigation"
 import { ShoppingCart, Store, User, Clock, CalendarDays, Receipt, BadgeCheck, Search } from "lucide-react"
 import { useState } from "react"
+import { FiX, FiShoppingCart, FiUser, FiCalendar, FiClock } from "react-icons/fi"
 
 type Order = {
   id: string
@@ -34,6 +35,36 @@ const statusMeta: Record<Order["status"], { en: string; ar: string; className: s
   pending: { en: "Pending", ar: "قيد المراجعة", className: "bg-blue-50 text-blue-700 border-blue-200", dot: "bg-blue-500" },
 }
 
+function OrderModal({ open, onClose, order, locale }: { open: boolean; onClose: () => void; order: Order | null; locale: 'ar' | 'en' }) {
+  if (!open || !order) return null;
+  const meta = statusMeta[order.status];
+  // بيانات إضافية وهمية
+  const fakeNotes = locale === 'ar' ? 'لا توجد ملاحظات على هذا الطلب.' : 'No notes for this order.';
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-3xl shadow-2xl p-12 w-full max-w-3xl relative animate-fade-in font-[Cairo] flex flex-col items-center border border-gray-100">
+        <button onClick={onClose} className="absolute top-6 right-6 text-gray-400 hover:text-red-500 text-3xl font-bold"><FiX /></button>
+        <h2 className="text-4xl font-extrabold text-gray-900 mb-2 flex items-center gap-2 mt-2">{locale === 'ar' ? 'تفاصيل الطلب' : 'Order Details'}</h2>
+        <div className={`inline-flex items-center gap-2 border rounded-full px-4 py-1 text-base font-medium mt-2 mb-8 ${meta.className}`}> <span className={`w-2 h-2 rounded-full ${meta.dot}`} /> {meta[locale]}</div>
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-10 mb-8">
+          <div>
+            <div className="mb-4 flex items-center gap-2 text-lg"><span className="font-semibold text-gray-700">{locale === 'ar' ? 'رقم الطلب:' : 'Order ID:'}</span> <span className="text-gray-900">{order.id}</span></div>
+            <div className="mb-4 flex items-center gap-2 text-lg"><span className="font-semibold text-gray-700">{locale === 'ar' ? 'الفرع:' : 'Branch:'}</span> <span className="text-gray-900">{order.branch[locale]}</span></div>
+            <div className="mb-4 flex items-center gap-2 text-lg"><span className="font-semibold text-gray-700">{locale === 'ar' ? 'مدير الفرع:' : 'Manager:'}</span> <span className="text-gray-900">{order.manager[locale]}</span></div>
+            <div className="mb-4 flex items-center gap-2 text-lg"><span className="font-semibold text-gray-700">{locale === 'ar' ? 'الحالة:' : 'Status:'}</span> <span className={`font-bold ${meta.className}`}>{meta[locale]}</span></div>
+          </div>
+          <div>
+            <div className="mb-4 flex items-center gap-2 text-lg"><span className="font-semibold text-gray-700">{locale === 'ar' ? 'التاريخ:' : 'Date:'}</span> <span className="text-gray-900">{order.date}</span></div>
+            <div className="mb-4 flex items-center gap-2 text-lg"><span className="font-semibold text-gray-700">{locale === 'ar' ? 'الوقت:' : 'Time:'}</span> <span className="text-gray-900">{order.time}</span></div>
+            <div className="mb-4 flex items-center gap-2 text-lg"><span className="font-semibold text-gray-700">{locale === 'ar' ? 'الإجمالي:' : 'Total:'}</span> <span className="text-blue-700 font-bold">{order.total} L.E</span></div>
+            <div className="mb-4 flex items-center gap-2 text-lg"><span className="font-semibold text-gray-700">{locale === 'ar' ? 'ملاحظات:' : 'Notes:'}</span> <span className="text-gray-500">{fakeNotes}</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const OrdersView = () => {
   const params = useParams()
   const locale: "ar" | "en" =
@@ -53,8 +84,12 @@ const OrdersView = () => {
     o.id.toLowerCase().includes(search.toLowerCase())
   )
 
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
   return (
     <div className="min-h-screen  p-4 sm:p-6 md:p-8" style={{ backgroundImage: "url('/background.jpg')", backgroundRepeat: 'repeat' }}>
+      <OrderModal open={modalOpen} onClose={() => setModalOpen(false)} order={selectedOrder} locale={locale} />
       <div className="max-w-[1200px] mx-auto">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -112,7 +147,8 @@ const OrdersView = () => {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.1 * idx, ease: "easeOut" }}
                 whileHover={{ y: -4, scale: 1.01, transition: { duration: 0.2 } }}
-                className="bg-white rounded-2xl shadow-lg hover:shadow-xl border border-gray-100 p-4 relative overflow-hidden"
+                className="bg-white rounded-2xl shadow-lg hover:shadow-xl border border-gray-100 p-4 relative overflow-hidden cursor-pointer"
+                onClick={() => { setSelectedOrder(o); setModalOpen(true); }}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3 min-w-0">

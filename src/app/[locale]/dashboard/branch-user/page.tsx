@@ -3,6 +3,8 @@ import { motion } from "framer-motion"
 import { useParams } from "next/navigation"
 import { User, Store, Briefcase, BadgeDollarSign, ClipboardList, Users, Search } from "lucide-react"
 import { useState } from "react"
+import { FiUser, FiMail, FiPhone, FiUserCheck, FiX, FiEdit2, FiTrash2, FiCheck } from "react-icons/fi"
+import React from "react"
 
 type Staff = {
   id: number
@@ -52,9 +54,159 @@ const staffList: Staff[] = [
   { id: 30, name: { en: "Hatem Fathy", ar: "حاتم فتحي" }, branch: { en: "Store - Sheraton", ar: "المتجر - شيراتون" }, role: { en: "Sales", ar: "مبيعات" }, salary: 6100, ordersHandled: 34, color: "#3b82f6" },
 ]
 
+type StaffEditForm = {
+  name: string;
+  role: string;
+  branch: string;
+  salary: number;
+  ordersHandled: number;
+  hiredAt: string;
+  rating: number;
+  status: string;
+};
+
+function StaffEditModal({ open, onClose, staff, locale, onSave }: { open: boolean; onClose: () => void; staff: Staff | null; locale: 'ar' | 'en'; onSave: (data: StaffEditForm) => void }) {
+  const initialForm: StaffEditForm = staff ? {
+    name: staff.name[locale] || "",
+    role: staff.role[locale] || "",
+    branch: staff.branch[locale] || "",
+    salary: staff.salary || 0,
+    ordersHandled: staff.ordersHandled || 0,
+    hiredAt: '2022-03-15',
+    rating: 4.7,
+    status: locale === 'ar' ? 'نشط' : 'Active',
+  } : {
+    name: '', role: '', branch: '', salary: 0, ordersHandled: 0, hiredAt: '', rating: 0, status: ''
+  };
+  const [form, setForm] = useState<StaffEditForm>(initialForm);
+  React.useEffect(() => {
+    if (staff) {
+      setForm({
+        name: staff.name[locale] || "",
+        role: staff.role[locale] || "",
+        branch: staff.branch[locale] || "",
+        salary: staff.salary || 0,
+        ordersHandled: staff.ordersHandled || 0,
+        hiredAt: '2022-03-15',
+        rating: 4.7,
+        status: locale === 'ar' ? 'نشط' : 'Active',
+      });
+    }
+  }, [staff, locale]);
+  if (!open || !staff) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-3xl shadow-2xl p-10 w-full max-w-2xl relative animate-fade-in font-[Cairo] flex flex-col items-center border border-gray-100">
+        <button onClick={onClose} className="absolute top-5 right-5 text-gray-400 hover:text-red-500 text-3xl font-bold"><FiX /></button>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><FiEdit2 className="text-blue-400" />{locale === 'ar' ? 'تعديل بيانات المستخدم' : 'Edit User Data'}</h2>
+        <form onSubmit={e => { e.preventDefault(); onSave(form); onClose(); }} className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+          <div>
+            <label className="block text-sm font-semibold mb-1 text-gray-700">{locale === 'ar' ? 'الاسم' : 'Name'}</label>
+            <input type="text" className="w-full h-11 rounded-lg border border-gray-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 font-[Cairo]" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-1 text-gray-700">{locale === 'ar' ? 'الدور' : 'Role'}</label>
+            <input type="text" className="w-full h-11 rounded-lg border border-gray-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 font-[Cairo]" value={form.role} onChange={e => setForm({ ...form, role: e.target.value })} required />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-1 text-gray-700">{locale === 'ar' ? 'الفرع' : 'Branch'}</label>
+            <input type="text" className="w-full h-11 rounded-lg border border-gray-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 font-[Cairo]" value={form.branch} onChange={e => setForm({ ...form, branch: e.target.value })} required />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-1 text-gray-700">{locale === 'ar' ? 'الراتب' : 'Salary'}</label>
+            <input type="number" className="w-full h-11 rounded-lg border border-gray-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 font-[Cairo]" value={form.salary} onChange={e => setForm({ ...form, salary: +e.target.value })} required />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-1 text-gray-700">{locale === 'ar' ? 'الطلبات التي تمت معالجتها' : 'Orders Handled'}</label>
+            <input type="number" className="w-full h-11 rounded-lg border border-gray-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 font-[Cairo]" value={form.ordersHandled} onChange={e => setForm({ ...form, ordersHandled: +e.target.value })} required />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-1 text-gray-700">{locale === 'ar' ? 'تاريخ التعيين' : 'Hired At'}</label>
+            <input type="date" className="w-full h-11 rounded-lg border border-gray-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 font-[Cairo]" value={form.hiredAt} onChange={e => setForm({ ...form, hiredAt: e.target.value })} required />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-1 text-gray-700">{locale === 'ar' ? 'التقييم' : 'Rating'}</label>
+            <input type="number" step="0.1" min="0" max="5" className="w-full h-11 rounded-lg border border-gray-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 font-[Cairo]" value={form.rating} onChange={e => setForm({ ...form, rating: +e.target.value })} required />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-1 text-gray-700">{locale === 'ar' ? 'الحالة' : 'Status'}</label>
+            <input type="text" className="w-full h-11 rounded-lg border border-gray-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 font-[Cairo]" value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} required />
+          </div>
+          <div className="md:col-span-2 flex justify-end mt-4">
+            <button type="submit" className="w-full md:w-auto h-11 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold flex items-center justify-center gap-2 transition px-8"><FiCheck /> {locale === 'ar' ? 'تأكيد التعديل' : 'Confirm Edit'}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function StaffModal({ open, onClose, staff, locale, onEdit, onDelete }: { open: boolean; onClose: () => void; staff: Staff | null; locale: 'ar' | 'en'; onEdit: () => void; onDelete: () => void }) {
+  if (!open || !staff) return null;
+  const fakeData = {
+    status: locale === 'ar' ? 'نشط' : 'Active',
+    rating: 4.7,
+    hiredAt: locale === 'ar' ? '2022-03-15' : '2022-03-15',
+    avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(staff.name[locale])}&background=0D8ABC&color=fff&size=256`,
+  };
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-3xl shadow-2xl p-10 w-full max-w-2xl relative animate-fade-in font-[Cairo] flex flex-col items-center border border-gray-100">
+        <button onClick={onClose} className="absolute top-5 right-5 text-gray-400 hover:text-red-500 text-3xl font-bold"><FiX /></button>
+        <div className="flex flex-col items-center -mt-10 mb-6">
+          <div className="relative">
+            <img src={fakeData.avatar} alt={staff.name[locale]} className="w-32 h-32 rounded-full border-4 border-white shadow-xl object-cover bg-white" />
+            <span className="absolute bottom-2 right-2 w-5 h-5 bg-green-500 border-2 border-white rounded-full shadow-md"></span>
+          </div>
+          <h2 className="text-3xl font-extrabold text-gray-900 mt-4 mb-1 flex items-center gap-2"><FiUser className="text-blue-400" />{staff.name[locale]}</h2>
+          <div className="text-lg text-gray-500 mb-2">{staff.role[locale]}</div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full mt-2">
+          <ul className="space-y-4 text-lg">
+            <li className="flex items-center gap-2 text-gray-700"><FiUserCheck className="text-purple-500" /> <span className="font-semibold">{locale === "ar" ? "الحالة:" : "Status:"}</span> <span className="text-green-600 font-bold">{fakeData.status}</span></li>
+            <li className="flex items-center gap-2 text-gray-700"><FiMail className="text-blue-500" /> <span className="font-semibold">{locale === "ar" ? "البريد الإلكتروني:" : "Email:"}</span> <span className="text-gray-400">غير متوفر</span></li>
+            <li className="flex items-center gap-2 text-gray-700"><FiPhone className="text-green-500" /> <span className="font-semibold">{locale === "ar" ? "رقم الهاتف:" : "Phone:"}</span> <span className="text-gray-400">غير متوفر</span></li>
+            <li className="flex items-center gap-2 text-gray-700"><span className="font-semibold">{locale === "ar" ? "الفرع:" : "Branch:"}</span> <span>{staff.branch[locale]}</span></li>
+          </ul>
+          <ul className="space-y-4 text-lg">
+            <li className="flex items-center gap-2 text-gray-700"><span className="font-semibold">{locale === "ar" ? "الراتب:" : "Salary:"}</span> <span className="text-blue-700 font-bold">{staff.salary} L.E</span></li>
+            <li className="flex items-center gap-2 text-gray-700"><span className="font-semibold">{locale === "ar" ? "الطلبات التي تمت معالجتها:" : "Orders handled:"}</span> <span className="text-indigo-700 font-bold">{staff.ordersHandled}</span></li>
+            <li className="flex items-center gap-2 text-gray-700"><span className="font-semibold">{locale === "ar" ? "تاريخ التعيين:" : "Hired at:"}</span> <span>{fakeData.hiredAt}</span></li>
+            <li className="flex items-center gap-2 text-gray-700"><span className="font-semibold">{locale === "ar" ? "التقييم:" : "Rating:"}</span> <span className="text-yellow-500 font-bold">★ {fakeData.rating}</span></li>
+          </ul>
+        </div>
+        <div className="flex gap-4 mt-8">
+          <button onClick={onEdit} className="flex items-center gap-2 px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg transition"><FiEdit2 /> {locale === 'ar' ? 'تعديل' : 'Edit'}</button>
+          <button onClick={onDelete} className="flex items-center gap-2 px-6 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-lg transition"><FiTrash2 /> {locale === 'ar' ? 'حذف' : 'Delete'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// خريطة أسماء المتاجر حسب المعرف
+const storeLabelById: Record<string, { en: string; ar: string }> = {
+  "first-settlement": { en: "Store - First Settlement", ar: "المتجر - التجمع الاول" },
+  dokki: { en: "Store - Dokki", ar: "المتجر - الدقى" },
+  sheraton: { en: "Store - Sheraton", ar: "المتجر - شيراتون" },
+}
+
+function mapUserStoreToStaff(u: any, nextIdStart: number): Staff {
+  const store = u.storeId && storeLabelById[u.storeId] ? storeLabelById[u.storeId] : { en: "Store", ar: "متجر" }
+  return {
+    id: nextIdStart,
+    name: { en: String(u.name || "User Store"), ar: String(u.name || "مستخدم متجر") },
+    branch: store,
+    role: { en: "User Store", ar: "مستخدم المتجر" },
+    salary: 0,
+    ordersHandled: 0,
+    color: "#3b82f6",
+  }
+}
+
 const BranchUser2View = () => {
   const params = useParams()
-  const locale: "ar" | "en" =
+  const locale: 'ar' | 'en' =
     (typeof params?.locale === "string" && (params.locale === "ar" || params.locale === "en") && params.locale) ||
     (Array.isArray(params?.locale) && (params?.locale[0] === "ar" || params?.locale[0] === "en") && params?.locale[0]) ||
     "en"
@@ -66,93 +218,133 @@ const BranchUser2View = () => {
   const ordersLabel = locale === "ar" ? "الطلبات التي تمت معالجتها" : "Orders handled"
 
   const [search, setSearch] = useState("")
-  const filteredStaff = staffList.filter((s) =>
-    s.name[locale].toLowerCase().includes(search.toLowerCase())
-  )
+  const [extraUsers, setExtraUsers] = useState<Staff[]>([])
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = window.localStorage.getItem("userStores") || "[]"
+        const arr = JSON.parse(raw)
+        if (Array.isArray(arr)) {
+          const mapped: Staff[] = arr.map((u: any, idx: number) => mapUserStoreToStaff(u, 10000 + idx))
+          setExtraUsers(mapped)
+        }
+      } catch {}
+    }
+  }, [])
+
+  const allStaff: Staff[] = React.useMemo(() => [...extraUsers, ...staffList], [extraUsers])
+  const filteredStaff = allStaff.filter((s) => s.name[locale].toLowerCase().includes(search.toLowerCase()))
+
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
+  const [staffListState, setStaffListState] = useState(staffList);
+
+  const handleEdit = (data: any) => {
+    if (!selectedStaff) return;
+    setStaffListState(list => list.map(s => s.id === selectedStaff.id ? {
+      ...s,
+      name: { ...s.name, [locale]: data.name },
+      role: { ...s.role, [locale]: data.role },
+      branch: { ...s.branch, [locale]: data.branch },
+      salary: data.salary,
+      ordersHandled: data.ordersHandled,
+      // البيانات الإضافية يمكن حفظها في متغيرات منفصلة أو تجاهلها هنا
+    } : s));
+    setSelectedStaff(s => s ? { ...s, name: { ...s.name, [locale]: data.name }, role: { ...s.role, [locale]: data.role }, branch: { ...s.branch, [locale]: data.branch }, salary: data.salary, ordersHandled: data.ordersHandled } : s);
+  };
+  const handleDelete = () => {
+    if (!selectedStaff) return;
+    setStaffListState(list => list.filter(s => s.id !== selectedStaff.id));
+    setModalOpen(false);
+    setSelectedStaff(null);
+  };
 
   return (
     <div className="min-h-screen  p-4 sm:p-6 md:p-8" style={{ backgroundImage: "url('/background.jpg')", backgroundRepeat: 'repeat' }}>
-      <div className="max-w-[1200px] mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="mb-6 sm:mb-8"
+      <StaffModal open={modalOpen} onClose={() => setModalOpen(false)} staff={selectedStaff} locale={locale} onEdit={() => { setEditOpen(true); }} onDelete={handleDelete} />
+      <StaffEditModal open={editOpen} onClose={() => setEditOpen(false)} staff={selectedStaff} locale={locale} onSave={handleEdit} />
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="mb-6 sm:mb-8"
+      >
+        <motion.h2
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
+          className="text-gray-900 font-extrabold text-2xl sm:text-3xl rounded-xl px-4 py-2 flex items-center gap-3"
         >
-          <motion.h2
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-            className="text-gray-900 font-extrabold text-2xl sm:text-3xl rounded-xl px-4 py-2 flex items-center gap-3"
-          >
-            <Users className="text-blue-600" size={28} />
-            {title}
-          </motion.h2>
-          {/* Search Input */}
-          <div className="mt-4 flex justify-center">
-            <div className="relative w-full max-w-xs">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                <Search size={18} />
-              </span>
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={locale === "ar" ? "ابحث عن موظف..." : "Search for a user..."}
-                className="w-full pl-10 pr-3 py-2 rounded-lg border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm bg-white placeholder-gray-400"
-              />
-            </div>
+          <Users className="text-blue-600" size={28} />
+          {title}
+        </motion.h2>
+        {/* Search Input */}
+        <div className="mt-4 flex justify-center">
+          <div className="relative w-full max-w-xs">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <Search size={18} />
+            </span>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={locale === "ar" ? "ابحث عن موظف..." : "Search for a user..."}
+              className="w-full pl-10 pr-3 py-2 rounded-lg border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm bg-white placeholder-gray-400"
+            />
           </div>
-        </motion.div>
+        </div>
+      </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
-          className="grid grid-cols-1 gap-4"
-        >
-          {filteredStaff.map((s, idx) => (
-            <motion.div
-              key={s.id}
-              initial={{ opacity: 0, y: 30, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.1 * idx, ease: "easeOut" }}
-              whileHover={{ y: -3, scale: 1.005, transition: { duration: 0.2 } }}
-              className="bg-white rounded-2xl shadow-lg hover:shadow-xl border border-gray-100 p-4 relative overflow-hidden"
-            >
-              <div className="flex items-start gap-4">
-                <div
-                  className="flex items-center justify-center w-12 h-12 rounded-full text-white shrink-0"
-                  style={{ background: s.color }}
-                >
-                  <User size={22} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-gray-900 font-bold text-lg truncate">{s.name[locale]}</div>
-                  <div className="mt-2 grid grid-cols-1 sm:grid-cols-4 gap-2.5">
-                    <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-2.5 py-1.5">
-                      <Store size={14} className="text-cyan-600" />
-                      <div className="text-xs text-gray-700 truncate"><span className="text-gray-500">{branchLabel}:</span> {s.branch[locale]}</div>
-                    </div>
-                    <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-2.5 py-1.5">
-                      <Briefcase size={14} className="text-indigo-600" />
-                      <div className="text-xs text-gray-700 truncate"><span className="text-gray-500">{roleLabel}:</span> {s.role[locale]}</div>
-                    </div>
-                    <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-2.5 py-1.5">
-                      <BadgeDollarSign size={14} className="text-emerald-600" />
-                      <div className="text-xs text-gray-700 truncate"><span className="text-gray-500">{salaryLabel}:</span> {s.salary} <span className="text-[10px] text-gray-500">L.E</span></div>
-                    </div>
-                    <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-2.5 py-1.5">
-                      <ClipboardList size={14} className="text-rose-600" />
-                      <div className="text-xs text-gray-700 truncate"><span className="text-gray-500">{ordersLabel}:</span> {s.ordersHandled}</div>
-                    </div>
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
+        className="grid grid-cols-1 gap-4"
+      >
+        {filteredStaff.map((s, idx) => (
+          <motion.div
+            key={s.id}
+            initial={{ opacity: 0, y: 30, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.1 * idx, ease: "easeOut" }}
+            whileHover={{ y: -3, scale: 1.005, transition: { duration: 0.2 } }}
+            className="bg-white rounded-2xl shadow-lg hover:shadow-xl border border-gray-100 p-4 relative overflow-hidden cursor-pointer"
+            onClick={() => { setSelectedStaff(s); setModalOpen(true); }}
+          >
+            <div className="flex items-start gap-4">
+              <div
+                className="flex items-center justify-center w-12 h-12 rounded-full text-white shrink-0"
+                style={{ background: s.color }}
+              >
+                <User size={22} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-gray-900 font-bold text-lg truncate">{s.name[locale]}</div>
+                <div className="mt-2 grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+                  <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-2.5 py-1.5">
+                    <Store size={14} className="text-cyan-600" />
+                    <div className="text-xs text-gray-700 truncate"><span className="text-gray-500">{branchLabel}:</span> {s.branch[locale]}</div>
+                  </div>
+                  <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-2.5 py-1.5">
+                    <Briefcase size={14} className="text-indigo-600" />
+                    <div className="text-xs text-gray-700 truncate"><span className="text-gray-500">{roleLabel}:</span> {s.role[locale]}</div>
+                  </div>
+                  <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-2.5 py-1.5">
+                    <BadgeDollarSign size={14} className="text-emerald-600" />
+                    <div className="text-xs text-gray-700 truncate"><span className="text-gray-500">{salaryLabel}:</span> {s.salary} <span className="text-[10px] text-gray-500">L.E</span></div>
+                  </div>
+                  <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-2.5 py-1.5">
+                    <ClipboardList size={14} className="text-rose-600" />
+                    <div className="text-xs text-gray-700 truncate"><span className="text-gray-500">{ordersLabel}:</span> {s.ordersHandled}</div>
                   </div>
                 </div>
               </div>
-            </motion.div>
-          ))}
-        </motion.div>
-      </div>
+            </div>
+          </motion.div>
+        ))}
+      </motion.div>
     </div>
   )
 }

@@ -327,7 +327,7 @@ export default function OutOfCoveragePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
-          <Card className="border-0 shadow-lg">
+          <Card className="border-0 shadow-lg" >
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 size={20} />
@@ -338,7 +338,7 @@ export default function OutOfCoveragePage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-80">
+              <div className="h-80"  dir="rtl">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 30 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -388,7 +388,7 @@ export default function OutOfCoveragePage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-80">
+              <div className="h-80" dir="ltr">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie

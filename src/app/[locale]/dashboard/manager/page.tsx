@@ -8,6 +8,46 @@ import {  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveConta
 import OutOfCoverageChart from "@/components/ui/OutOfCoverageChart"
 import { motion } from "framer-motion"
 
+type CityData = {
+  id: number
+  name: { ar: string; en: string }
+  coordinates: { lat: number; lng: number }
+  orders: number
+  percentage: number
+  color: string
+  region: { ar: string; en: string }
+}
+
+const citiesData: CityData[] = [
+  {
+    id: 1,
+    name: { ar: "القاهرة - مدينة نصر", en: "Cairo - Nasr City" },
+    coordinates: { lat: 30.0444, lng: 31.2357 },
+    orders: 142,
+    percentage: 28.4,
+    color: "#ef4444",
+    region: { ar: "القاهرة", en: "Cairo" }
+  },
+  {
+    id: 2,
+    name: { ar: "الجيزة - 6 أكتوبر", en: "Giza - 6th October" },
+    coordinates: { lat: 29.9792, lng: 30.7293 },
+    orders: 118,
+    percentage: 23.6,
+    color: "#f59e0b",
+    region: { ar: "الجيزة", en: "Giza" }
+  },
+  {
+    id: 3,
+    name: { ar: "الإسكندرية - سيدي جابر", en: "Alexandria - Sidi Gaber" },
+    coordinates: { lat: 31.2057, lng: 29.9247 },
+    orders: 89,
+    percentage: 17.8,
+    color: "#3b82f6",
+    region: { ar: "الإسكندرية", en: "Alexandria" }
+  }
+]
+
 const stats = [
   {
     label: { ar: "المناطق", en: "Areas" },
@@ -69,8 +109,8 @@ const weeklyData = [
 function Modal({ open, onClose, children }: { open: boolean; onClose: () => void; children: React.ReactNode }) {
   if (!open) return null
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md relative animate-fade-in">
+    <div className="fixed inset-0 z-[99999999] flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md relative animate-fade-in z-[999999]">
         <button
           onClick={onClose}
           className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl font-bold"
@@ -90,9 +130,9 @@ function OrderDetailsModal({ open, onClose, order, locale }: { open: boolean; on
   const salesPerson = locale === "ar" ? "موظف المبيعات: غير محدد" : "Sales: N/A"
   const areaManager = order.manager[locale]
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div className="fixed inset-0 z-[99999999] flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl relative animate-fade-in font-[Cairo] flex flex-col border border-gray-100 max-h-[90vh]">
-        <button onClick={onClose} className="sticky top-0 right-0 self-end z-20 mt-6 mr-6 text-gray-400 hover:text-red-500 text-3xl font-bold bg-white rounded-full">×</button>
+        <button onClick={onClose} className="sticky top-0 right-0 self-end z-20 mt-6 mr-6 text-gray-400 hover:text-secondary text-3xl font-bold bg-white rounded-full">×</button>
         <div className="overflow-y-auto px-8 pt-2 pb-8" style={{ maxHeight: '80vh' }}>
           <h2 className="text-3xl font-extrabold text-gray-900 mb-1">{order.id}</h2>
           <div className={`inline-flex items-center gap-2 border rounded-full px-3 py-1 text-xs font-medium mb-6 ${meta.className}`}>
@@ -163,7 +203,7 @@ const ManagerView = () => {
     <>
       <style jsx global>{`
         html {
-          scrollbar-color: #dc2626 transparent;
+          scrollbar-color: #66c7c7 transparent; 
           scrollbar-width: thin;
         }
         body {
@@ -175,7 +215,7 @@ const ManagerView = () => {
           background: url('/background.jpg') repeat;
         }
         ::-webkit-scrollbar-thumb {
-          background: #dc2626;
+          background: #66c7c7;
           border-radius: 8px;
         }
         ::-webkit-scrollbar-track {
@@ -309,7 +349,18 @@ const ManagerView = () => {
               transition={{ duration: 0.6, delay: 0.5, ease: "easeOut" }}
               className={`${small ? "col-span-1 w-full mt-4" : "col-span-3"} p-0`}
             >
-              <OutOfCoverageChart />
+              {/* Map Title */}
+            <div className="bg-teal-100 h-full flex flex-col pt-2 rounded-[20px] ">
+              <div className="mb-4 text-center">
+                <h3 className="text-lg font-bold text-gray-900 mb-1">
+                  {locale === "ar" ? "طلبات خارج التغطية" : "Out of Coverage Orders"}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  {locale === "ar" ? "المدن مع أعلى عدد من الطلبات خارج نطاق التغطية" : "Cities with highest out-of-coverage orders"}
+                </p>
+              </div>
+              <OutOfCoverageChart cities={citiesData} locale={locale} />
+            </div>
             </motion.div>
           </motion.div>
 
@@ -506,7 +557,7 @@ const ManagerView = () => {
           <div className="w-full flex justify-center mt-12 mb-8">
             <button
               onClick={() => setOpen(true)}
-              className="w-full max-w-md bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg text-base shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
+              className="w-full max-w-md bg-secondary hover:bg-primary text-white font-bold py-2 px-4 rounded-lg text-base shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
             >
               <UserPlus size={20} />
               {locale === "ar" ? "إضافة مستخدم جديد" : "Add New User"}
@@ -515,7 +566,7 @@ const ManagerView = () => {
           {/* زر عائم دائري */}
           <button
             onClick={() => setOpen(true)}
-            className={`fixed bottom-6 ${fabPosition} z-50 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg w-14 h-14 flex items-center justify-center transition-all duration-200 border-4 border-white`}
+            className={`fixed bottom-6 ${fabPosition} z-50 bg-secondary hover:bg-primary text-white rounded-full shadow-lg w-14 h-14 flex items-center justify-center transition-all duration-200 border-4 border-white`}
             aria-label={locale === "ar" ? "إضافة مستخدم جديد" : "Add New User"}
           >
             <UserPlus size={28} />
@@ -751,7 +802,7 @@ function CreateCard({
                 setSelectedArea(e.target.value)
                 setForm((f) => ({ ...f, storeId: "" })) // Reset store when area changes
               }}
-              className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="" disabled>
                 {l.select}
@@ -772,7 +823,7 @@ function CreateCard({
               required
               value={form.storeId || ""}
               onChange={(e) => setForm((f) => ({ ...f, storeId: e.target.value }))}
-              className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
               disabled={role === "AREA_MANAGER" && !selectedArea}
             >
               <option value="" disabled>
@@ -794,7 +845,7 @@ function CreateCard({
             required
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
             placeholder={locale === "ar" ? "اكتب الاسم" : "Enter full name"}
           />
         </div>
@@ -806,7 +857,7 @@ function CreateCard({
             required
             value={form.email}
             onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-            className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
             placeholder={locale === "ar" ? "name@example.com" : "name@example.com"}
           />
         </div>
@@ -818,7 +869,7 @@ function CreateCard({
             required
             value={form.password}
             onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-            className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
             placeholder={locale === "ar" ? "••••••••" : "••••••••"}
           />
         </div>
@@ -856,6 +907,6 @@ const latestOrders: LatestOrder[] = [
 const statusMeta: Record<LatestOrder["status"], { en: string; ar: string; className: string; dot: string }> = {
   completed: { en: "Completed", ar: "مكتمل", className: "bg-green-50 text-green-700 border-green-200", dot: "bg-green-500" },
   in_progress: { en: "In Progress", ar: "قيد التنفيذ", className: "bg-yellow-50 text-yellow-700 border-yellow-200", dot: "bg-yellow-500" },
-  cancelled: { en: "Cancelled", ar: "ملغي", className: "bg-red-50 text-red-700 border-red-200", dot: "bg-red-500" },
+  cancelled: { en: "Cancelled", ar: "ملغي", className: "bg-red-50 text-red-700 border-red-200", dot: "bg-secondary" },
   pending: { en: "Pending", ar: "قيد المراجعة", className: "bg-blue-50 text-blue-700 border-blue-200", dot: "bg-blue-500" },
 }

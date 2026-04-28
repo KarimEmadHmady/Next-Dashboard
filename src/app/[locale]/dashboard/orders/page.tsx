@@ -31,7 +31,7 @@ const orders: Order[] = [
 const statusMeta: Record<Order["status"], { en: string; ar: string; className: string; dot: string }> = {
   completed: { en: "Completed", ar: "مكتمل", className: "bg-green-50 text-green-700 border-green-200", dot: "bg-green-500" },
   in_progress: { en: "In Progress", ar: "قيد التنفيذ", className: "bg-yellow-50 text-yellow-700 border-yellow-200", dot: "bg-yellow-500" },
-  cancelled: { en: "Cancelled", ar: "ملغي", className: "bg-red-50 text-red-700 border-red-200", dot: "bg-red-500" },
+  cancelled: { en: "Cancelled", ar: "ملغي", className: "bg-red-50 text-red-700 border-red-200", dot: "bg-secondary" },
   pending: { en: "Pending", ar: "قيد المراجعة", className: "bg-blue-50 text-blue-700 border-blue-200", dot: "bg-blue-500" },
 }
 
@@ -43,7 +43,7 @@ function OrderModal({ open, onClose, order, locale }: { open: boolean; onClose: 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-3xl shadow-2xl p-12 w-full max-w-3xl relative animate-fade-in font-[Cairo] flex flex-col items-center border border-gray-100">
-        <button onClick={onClose} className="absolute top-6 right-6 text-gray-400 hover:text-red-500 text-3xl font-bold"><FiX /></button>
+        <button onClick={onClose} className="absolute top-6 right-6 text-gray-400 hover:text-secondary text-3xl font-bold"><FiX /></button>
         <h2 className="text-4xl font-extrabold text-gray-900 mb-2 flex items-center gap-2 mt-2">{locale === 'ar' ? 'تفاصيل الطلب' : 'Order Details'}</h2>
         <div className={`inline-flex items-center gap-2 border rounded-full px-4 py-1 text-base font-medium mt-2 mb-8 ${meta.className}`}> <span className={`w-2 h-2 rounded-full ${meta.dot}`} /> {meta[locale]}</div>
         <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-10 mb-8">

@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "@/i18n/navigation"
+import { useParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,6 +17,14 @@ export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const router = useRouter()
+  const params = useParams()
+  
+  const locale: "ar" | "en" = 
+    (typeof params?.locale === "string" && (params.locale === "ar" || params.locale === "en") && params.locale) ||
+    (Array.isArray(params?.locale) && (params.locale[0] === "ar" || params.locale[0] === "en") && params.locale[0]) ||
+    "en"
+
+  const isRTL = locale === "ar"
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -26,7 +35,7 @@ export default function AuthPage() {
     const password = formData.get("password") as string
 
     try {
-      // هنا تضع منطق المصادقة الخاص بك
+      // Add your authentication logic here
       await new Promise((resolve) => setTimeout(resolve, 2000))
       console.log("Signing in with:", email, password)
       // Store a simple user profile for Sidebar consumption
@@ -56,7 +65,7 @@ export default function AuthPage() {
   async function handleGoogleSignIn() {
     setIsGoogleLoading(true)
     try {
-      // هنا تضع منطق تسجيل الدخول بـ Google
+      // Add your Google sign-in logic here
       await new Promise((resolve) => setTimeout(resolve, 1500))
       console.log("Signing in with Google")
     } catch (error) {
@@ -88,8 +97,9 @@ export default function AuthPage() {
 
   return (
     <div
-      className="flex min-h-screen items-center justify-center p-4"
+      className={`flex min-h-screen items-center justify-center p-4 ${isRTL ? 'font-arabic' : ''}`}
       style={{ backgroundImage: "url('/background.jpg')", backgroundRepeat: "repeat" }}
+      dir={isRTL ? "rtl" : "ltr"}
     >
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
@@ -118,14 +128,32 @@ export default function AuthPage() {
           transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
         >
           <Card className="w-full border-0 shadow-lg">
-            <CardHeader className="space-y-2">
+            <CardHeader className="space-y-4 text-center">
+              {/* Synabon Order Center Title */}
               <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.6, ease: "easeOut" }}
+                transition={{ duration: 0.6, delay: 0.5, ease: "easeOut" }}
+              >
+                <div className="space-y-2 flex flex-row items-center justify-center gap-2">
+                  <CardTitle className="text-3xl font-bold tracking-tight bg-gradient-to-r from-[#73cdca] to-[#131e48] bg-clip-text text-transparent">
+                    {locale === "ar" ? "سينابون أوردر سنتر" : "CINNABON Order Center"}
+                  </CardTitle>
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="px-3 py-1 bg-gradient-to-r from-[#73cdca] to-white rounded-full border border-blue-200">
+                      <span className="text-sm font-semibold text-blue-700">COC</span>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+              
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.7, ease: "easeOut" }}
               >
                 <CardTitle className="text-2xl font-semibold tracking-tight text-black">
-                  Welcome back
+                  {locale === "ar" ? "مرحباً بعودتك" : "Welcome back"}
                 </CardTitle>
               </motion.div>
               <motion.div
@@ -134,17 +162,17 @@ export default function AuthPage() {
                 transition={{ duration: 0.6, delay: 0.7, ease: "easeOut" }}
               >
                 <CardDescription className="text-neutral-600">
-                  Enter your credentials to access your account
+                  {locale === "ar" ? "أدخل بياناتك للوصول إلى حسابك" : "Enter your credentials to access your account"}
                 </CardDescription>
               </motion.div>
             </CardHeader>
 
           <CardContent className="space-y-6">
-            {/* نموذج تسجيل الدخول */}
+            {/* Login Form */}
             <form onSubmit={handleSubmit} className="space-y-4" noValidate>
               <div className="space-y-2">
                 <label htmlFor="email" className="text-sm font-medium text-black">
-                  Email
+                  {locale === "ar" ? "البريد الإلكتروني" : "Email"}
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 flex items-center justify-center w-4 h-4">
@@ -153,7 +181,7 @@ export default function AuthPage() {
                   <Input
                     type="email"
                     name="email"
-                    placeholder="name@example.com"
+                    placeholder={locale === "ar" ? "name@example.com" : "name@example.com"}
                     required
                     disabled={isLoading}
                     className="pl-10 h-12 bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring"
@@ -163,13 +191,13 @@ export default function AuthPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-black">Password</label>
+                <label className="text-sm font-medium text-black">{locale === "ar" ? "كلمة المرور" : "Password"}</label>
                 <div className="relative">
                   <LockIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <Input
                     type="password"
                     name="password"
-                    placeholder="Enter your password"
+                    placeholder={locale === "ar" ? "أدخل كلمة المرور" : "Enter your password"}
                     required
                     disabled={isLoading}
                     className="pl-10 h-12 bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring"
@@ -180,10 +208,10 @@ export default function AuthPage() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-12 text-base font-medium bg-black text-white hover:bg-neutral-800 transition-colors"
+                className="w-full h-12 text-base font-medium bg-[#131e48] text-[#73cdca] hover:bg-neutral-800 transition-colors"
               >
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isLoading ? "Signing in..." : "Sign in"}
+                {isLoading ? (locale === "ar" ? "جاري تسجيل الدخول..." : "Signing in...") : (locale === "ar" ? "تسجيل الدخول" : "Sign in")}
               </Button>
             </form>
           </CardContent>

@@ -11,6 +11,7 @@
     "open": "افتح القائمة الجانبية",
     "areas": "المناطق",
     "branchResponsibles": "مسؤل الفروع",
-    "branchUser2": "مستخدم الفرع"
+    "branchUser2": "مستخدم الفرع",
+    "outOfCoverage": "خارج التغطية"
   }
 } 

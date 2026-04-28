@@ -15,20 +15,86 @@ type Branch = {
 }
 
 const branches: Branch[] = [
-  { id: 1, name: { en: "Store - First Settlement", ar: "المتجر - التجمع الاول" }, location: { en: "First Settlement", ar: "التجمع الاول" }, manager: { en: "Ahmed Hassan", ar: "أحمد حسن" }, employees: 12, color: "#f59e0b" },
-  { id: 2, name: { en: "Store - Dokki", ar: "المتجر - الدقى" }, location: { en: "Dokki", ar: "الدقى" }, manager: { en: "Youssef Ahmed", ar: "يوسف أحمد" }, employees: 9, color: "#3b82f6" },
-  { id: 3, name: { en: "Store - Sheraton", ar: "المتجر - شيراتون" }, location: { en: "Sheraton", ar: "شيراتون" }, manager: { en: "Mohamed Youssef", ar: "محمد يوسف" }, employees: 7, color: "#22c55e" },
-]
+  {
+    id: 1,
+    name: { en: "Store - Cairo", ar: "المتجر - القاهرة" },
+    location: { en: "Cairo", ar: "القاهرة" },
+    manager: { en: "Ahmed Hassan", ar: "أحمد حسن" },
+    employees: 20,
+    color: "#f59e0b"
+  },
+  {
+    id: 2,
+    name: { en: "Store - Dokki", ar: "المتجر - الدقي" },
+    location: { en: "Dokki", ar: "الدقي" },
+    manager: { en: "Youssef Ahmed", ar: "يوسف أحمد" },
+    employees: 12,
+    color: "#3b82f6"
+  },
+  {
+    id: 3,
+    name: { en: "Store - Mokattam", ar: "المتجر - المقطم" },
+    location: { en: "Mokattam", ar: "المقطم" },
+    manager: { en: "Mohamed Ali", ar: "محمد علي" },
+    employees: 10,
+    color: "#22c55e"
+  },
+  {
+    id: 4,
+    name: { en: "Store - Nasr City", ar: "المتجر - مدينة نصر" },
+    location: { en: "Nasr City", ar: "مدينة نصر" },
+    manager: { en: "Omar Khaled", ar: "عمر خالد" },
+    employees: 18,
+    color: "#ef4444"
+  },
+  {
+    id: 5,
+    name: { en: "Store - New Cairo", ar: "المتجر - القاهرة الجديدة" },
+    location: { en: "New Cairo", ar: "القاهرة الجديدة" },
+    manager: { en: "Karim Adel", ar: "كريم عادل" },
+    employees: 22,
+    color: "#8b5cf6"
+  },
+  {
+    id: 6,
+    name: { en: "Store - Shorouk & Obour", ar: "المتجر - الشروق والعبور" },
+    location: { en: "Shorouk & Obour", ar: "الشروق والعبور" },
+    manager: { en: "Hassan Tarek", ar: "حسن طارق" },
+    employees: 11,
+    color: "#06b6d4"
+  },
+  {
+    id: 7,
+    name: { en: "Store - Sheikh Zayed", ar: "المتجر - الشيخ زايد" },
+    location: { en: "Sheikh Zayed", ar: "الشيخ زايد" },
+    manager: { en: "Mahmoud Essam", ar: "محمود عصام" },
+    employees: 14,
+    color: "#84cc16"
+  },
+  {
+    id: 8,
+    name: { en: "Store - 6th of October", ar: "المتجر - 6 أكتوبر" },
+    location: { en: "6th of October", ar: "6 أكتوبر" },
+    manager: { en: "Mostafa Samir", ar: "مصطفى سمير" },
+    employees: 16,
+    color: "#f97316"
+  }
+];
 
 // بيانات وهمية للموظفين والأوردرات
 const fakeStaff = [
   { id: 1, name: { en: "Omar Ali", ar: "عمر علي" }, role: { en: "Sales", ar: "مبيعات" } },
   { id: 2, name: { en: "Nour Ahmed", ar: "نور أحمد" }, role: { en: "Cashier", ar: "كاشير" } },
   { id: 3, name: { en: "Mahmoud Farid", ar: "محمود فريد" }, role: { en: "Sales Lead", ar: "مسؤول مبيعات" } },
+  { id: 4, name: { en: "Sara Mohamed", ar: "سارة محمد" }, role: { en: "Customer Support", ar: "خدمة عملاء" } },
+  { id: 5, name: { en: "Ali Hassan", ar: "علي حسن" }, role: { en: "Warehouse", ar: "مخزن" } },
 ];
 const fakeOrders = [
   { id: "ORD-10231", date: "2025-08-18", total: 320, status: "completed" },
   { id: "ORD-10232", date: "2025-08-17", total: 210, status: "pending" },
+  { id: "ORD-10233", date: "2025-08-16", total: 540, status: "completed" },
+  { id: "ORD-10234", date: "2025-08-15", total: 150, status: "cancelled" },
+  { id: "ORD-10235", date: "2025-08-14", total: 400, status: "completed" },
 ];
 const fakeLocation = { lat: 30.0275, lng: 31.4913, address: { en: "First Settlement, Cairo", ar: "التجمع الأول، القاهرة" } };
 
@@ -37,7 +103,7 @@ function StoreModal({ open, onClose, store, locale }: { open: boolean; onClose: 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl relative animate-fade-in font-[Cairo] flex flex-col border border-gray-100 max-h-[90vh]">
-        <button onClick={onClose} className="sticky top-0 right-0 self-end z-20 mt-6 mr-6 text-gray-400 hover:text-red-500 text-3xl font-bold bg-white rounded-full"><FiX /></button>
+        <button onClick={onClose} className="sticky top-0 right-0 self-end z-20 mt-6 mr-6 text-gray-400 hover:text-secondary text-3xl font-bold bg-white rounded-full"><FiX /></button>
         <div className="overflow-y-auto px-10 pt-2 pb-10" style={{ maxHeight: '80vh' }}>
           <h2 className="text-4xl font-extrabold text-gray-900 mb-2 flex items-center gap-2 mt-2"><Store className="text-orange-400" />{store.name[locale]}</h2>
           <div className="mb-6 text-lg text-gray-600 flex items-center gap-2"><FiUser className="text-blue-400" />{locale === 'ar' ? 'مدير الفرع:' : 'Manager:'} <span className="font-bold text-gray-900">{store.manager[locale]}</span></div>
@@ -45,7 +111,7 @@ function StoreModal({ open, onClose, store, locale }: { open: boolean; onClose: 
             {/* بيانات الفرع */}
             <div className="flex-1 space-y-3">
               <div className="flex items-center gap-2 text-lg"><FiUsers className="text-emerald-500" /> <span className="font-semibold">{locale === 'ar' ? 'عدد الموظفين:' : 'Employees:'}</span> <span>{store.employees}</span></div>
-              <div className="flex items-center gap-2 text-lg"><FiMapPin className="text-red-500" /> <span className="font-semibold">{locale === 'ar' ? 'العنوان:' : 'Address:'}</span> <span>{fakeLocation.address[locale]}</span></div>
+              <div className="flex items-center gap-2 text-lg"><FiMapPin className="text-secondary" /> <span className="font-semibold">{locale === 'ar' ? 'العنوان:' : 'Address:'}</span> <span>{fakeLocation.address[locale]}</span></div>
               <div className="flex items-center gap-2 text-lg"><FiList className="text-indigo-500" /> <span className="font-semibold">{locale === 'ar' ? 'كود الفرع:' : 'Branch ID:'}</span> <span>{store.id}</span></div>
             </div>
             {/* خريطة الموقع */}

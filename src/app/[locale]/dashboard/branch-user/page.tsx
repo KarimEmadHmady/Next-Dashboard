@@ -97,7 +97,7 @@ function StaffEditModal({ open, onClose, staff, locale, onSave }: { open: boolea
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-3xl shadow-2xl p-10 w-full max-w-2xl relative animate-fade-in font-[Cairo] flex flex-col items-center border border-gray-100">
-        <button onClick={onClose} className="absolute top-5 right-5 text-gray-400 hover:text-red-500 text-3xl font-bold"><FiX /></button>
+        <button onClick={onClose} className="absolute top-5 right-5 text-gray-400 hover:text-secondary text-3xl font-bold"><FiX /></button>
         <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><FiEdit2 className="text-blue-400" />{locale === 'ar' ? 'تعديل بيانات المستخدم' : 'Edit User Data'}</h2>
         <form onSubmit={e => { e.preventDefault(); onSave(form); onClose(); }} className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
           <div>
@@ -152,7 +152,7 @@ function StaffModal({ open, onClose, staff, locale, onEdit, onDelete }: { open: 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-3xl shadow-2xl p-10 w-full max-w-2xl relative animate-fade-in font-[Cairo] flex flex-col items-center border border-gray-100">
-        <button onClick={onClose} className="absolute top-5 right-5 text-gray-400 hover:text-red-500 text-3xl font-bold"><FiX /></button>
+        <button onClick={onClose} className="absolute top-5 right-5 text-gray-400 hover:text-secondary text-3xl font-bold"><FiX /></button>
         <div className="flex flex-col items-center -mt-10 mb-6">
           <div className="relative">
             <img src={fakeData.avatar} alt={staff.name[locale]} className="w-32 h-32 rounded-full border-4 border-white shadow-xl object-cover bg-white" />
@@ -177,7 +177,7 @@ function StaffModal({ open, onClose, staff, locale, onEdit, onDelete }: { open: 
         </div>
         <div className="flex gap-4 mt-8">
           <button onClick={onEdit} className="flex items-center gap-2 px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg transition"><FiEdit2 /> {locale === 'ar' ? 'تعديل' : 'Edit'}</button>
-          <button onClick={onDelete} className="flex items-center gap-2 px-6 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-lg transition"><FiTrash2 /> {locale === 'ar' ? 'حذف' : 'Delete'}</button>
+          <button onClick={onDelete} className="flex items-center gap-2 px-6 py-2 rounded-lg bg-secondary hover:bg-primary text-white font-bold text-lg transition"><FiTrash2 /> {locale === 'ar' ? 'حذف' : 'Delete'}</button>
         </div>
       </div>
     </div>

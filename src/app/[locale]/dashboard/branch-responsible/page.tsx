@@ -15,20 +15,76 @@ type StoreManager = {
 }
 
 const managers: StoreManager[] = [
-  { id: 1, name: { en: "Ahmed Hassan", ar: "أحمد حسن" }, branch: { en: "Store - First Settlement", ar: "المتجر - التجمع الاول" }, employees: 12, color: "#fb923c" },
-  { id: 2, name: { en: "Youssef Ahmed", ar: "يوسف أحمد" }, branch: { en: "Store - Dokki", ar: "المتجر - الدقى" }, employees: 9, color: "#6366f1" },
-  { id: 3, name: { en: "Mohamed Youssef", ar: "محمد يوسف" }, branch: { en: "Store - Sheraton", ar: "المتجر - شيراتون" }, employees: 7, color: "#06b6d4" },
-]
+  {
+    id: 1,
+    name: { en: "Ahmed Hassan", ar: "أحمد حسن" },
+    branch: { en: "Store - Cairo", ar: "المتجر - القاهرة" },
+    employees: 20,
+    color: "#fb923c"
+  },
+  {
+    id: 2,
+    name: { en: "Youssef Ahmed", ar: "يوسف أحمد" },
+    branch: { en: "Store - Dokki", ar: "المتجر - الدقي" },
+    employees: 12,
+    color: "#6366f1"
+  },
+  {
+    id: 3,
+    name: { en: "Mohamed Ali", ar: "محمد علي" },
+    branch: { en: "Store - Mokattam", ar: "المتجر - المقطم" },
+    employees: 10,
+    color: "#06b6d4"
+  },
+  {
+    id: 4,
+    name: { en: "Omar Khaled", ar: "عمر خالد" },
+    branch: { en: "Store - Nasr City", ar: "المتجر - مدينة نصر" },
+    employees: 18,
+    color: "#ef4444"
+  },
+  {
+    id: 5,
+    name: { en: "Karim Adel", ar: "كريم عادل" },
+    branch: { en: "Store - New Cairo", ar: "المتجر - القاهرة الجديدة" },
+    employees: 22,
+    color: "#8b5cf6"
+  },
+  {
+    id: 6,
+    name: { en: "Hassan Tarek", ar: "حسن طارق" },
+    branch: { en: "Store - Shorouk & Obour", ar: "المتجر - الشروق والعبور" },
+    employees: 11,
+    color: "#14b8a6"
+  },
+  {
+    id: 7,
+    name: { en: "Mahmoud Essam", ar: "محمود عصام" },
+    branch: { en: "Store - Sheikh Zayed", ar: "المتجر - الشيخ زايد" },
+    employees: 14,
+    color: "#84cc16"
+  },
+  {
+    id: 8,
+    name: { en: "Mostafa Samir", ar: "مصطفى سمير" },
+    branch: { en: "Store - 6th of October", ar: "المتجر - 6 أكتوبر" },
+    employees: 16,
+    color: "#f97316"
+  }
+];
 
 // بيانات وهمية للموظفين والأوردرات
 const fakeStaff = [
   { id: 1, name: { en: "Omar Ali", ar: "عمر علي" }, role: { en: "Sales", ar: "مبيعات" } },
   { id: 2, name: { en: "Nour Ahmed", ar: "نور أحمد" }, role: { en: "Cashier", ar: "كاشير" } },
   { id: 3, name: { en: "Mahmoud Farid", ar: "محمود فريد" }, role: { en: "Sales Lead", ar: "مسؤول مبيعات" } },
+  { id: 4, name: { en: "Sara Mohamed", ar: "سارة محمد" }, role: { en: "Customer Support", ar: "خدمة عملاء" } },
 ];
 const fakeOrders = [
   { id: "ORD-10231", date: "2025-08-18", total: 320, status: "completed" },
   { id: "ORD-10232", date: "2025-08-17", total: 210, status: "pending" },
+  { id: "ORD-10233", date: "2025-08-16", total: 540, status: "completed" },
+  { id: "ORD-10234", date: "2025-08-15", total: 150, status: "cancelled" },
 ];
 const fakeLocation = { lat: 30.0275, lng: 31.4913, address: { en: "First Settlement, Cairo", ar: "التجمع الأول، القاهرة" } };
 
@@ -48,7 +104,7 @@ function ManagerModal({ open, onClose, manager, locale }: { open: boolean; onClo
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl relative animate-fade-in font-[Cairo] flex flex-col border border-gray-100 max-h-[90vh]">
-        <button onClick={onClose} className="sticky top-0 right-0 self-end z-20 mt-6 mr-6 text-gray-400 hover:text-red-500 text-3xl font-bold bg-white rounded-full"><FiX /></button>
+        <button onClick={onClose} className="sticky top-0 right-0 self-end z-20 mt-6 mr-6 text-gray-400 hover:text-secondary text-3xl font-bold bg-white rounded-full"><FiX /></button>
         <div className="overflow-y-auto px-8 pt-2 pb-10" style={{ maxHeight: '80vh' }}>
           {/* صورة المانجر */}
           <div className="flex flex-col items-center mb-6 mt-2">
@@ -67,7 +123,7 @@ function ManagerModal({ open, onClose, manager, locale }: { open: boolean; onClo
           {/* بيانات مختصرة عن الاستور */}
           <div className="bg-indigo-50 rounded-2xl p-6 mb-2 flex flex-col items-start border border-indigo-100">
             <h3 className="text-xl font-bold text-indigo-700 mb-2 flex items-center gap-2"><FiStore className="text-indigo-400" />{locale === 'ar' ? 'بيانات الفرع' : 'Store Info'}</h3>
-            <div className="mb-2 flex items-center gap-2 text-base text-gray-700"><FiMapPin className="text-red-400" /> <span className="font-semibold">{locale === 'ar' ? 'الفرع:' : 'Branch:'}</span> <span>{manager.branch[locale]}</span></div>
+            <div className="mb-2 flex items-center gap-2 text-base text-gray-700"><FiMapPin className="text-secondary" /> <span className="font-semibold">{locale === 'ar' ? 'الفرع:' : 'Branch:'}</span> <span>{manager.branch[locale]}</span></div>
             <div className="mb-2 flex items-center gap-2 text-base text-gray-700"><FiMapPin className="text-cyan-500" /> <span className="font-semibold">{locale === 'ar' ? 'العنوان:' : 'Address:'}</span> <span>{fakeLocation.address[locale]}</span></div>
             <div className="mb-2 flex items-center gap-2 text-base text-gray-700"><FiUsers className="text-emerald-500" /> <span className="font-semibold">{locale === 'ar' ? 'عدد الموظفين:' : 'Employees:'}</span> <span>{manager.employees}</span></div>
           </div>
@@ -94,7 +150,7 @@ function Modal({ open, onClose, children }: { open: boolean; onClose: () => void
   if (!open) return null
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md relative animate-fade-in">
+      <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md relative animate-fade-in z-[999999]">
         <button
           onClick={onClose}
           className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl font-bold"
@@ -151,7 +207,7 @@ function CreateCard({ locale, onSuccess }: { locale: Locale; onSuccess?: () => v
             required
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-600"
             placeholder={locale === "ar" ? "اكتب الاسم" : "Enter full name"}
           />
         </div>
@@ -162,7 +218,7 @@ function CreateCard({ locale, onSuccess }: { locale: Locale; onSuccess?: () => v
             required
             value={form.email}
             onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-            className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-600"
             placeholder={locale === "ar" ? "name@example.com" : "name@example.com"}
           />
         </div>
@@ -173,7 +229,7 @@ function CreateCard({ locale, onSuccess }: { locale: Locale; onSuccess?: () => v
             required
             value={form.password}
             onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-            className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-600"
             placeholder={locale === "ar" ? "••••••••" : "••••••••"}
           />
         </div>
@@ -183,7 +239,7 @@ function CreateCard({ locale, onSuccess }: { locale: Locale; onSuccess?: () => v
             required
             value={form.storeId || ""}
             onChange={(e) => setForm((f) => ({ ...f, storeId: e.target.value }))}
-            className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
           >
             <option value="" disabled>
               {l.select}
@@ -335,7 +391,7 @@ const BranchResponsibleView = () => {
         <div className="w-full flex justify-center mt-12 mb-8">
           <button
             onClick={() => setOpen(true)}
-            className="w-full max-w-md bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg text-base shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
+            className="w-full max-w-md bg-secondary hover:bg-primary text-white font-bold py-2 px-4 rounded-lg text-base shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
           >
             <UserPlus size={20} />
             {locale === "ar" ? "إضافة مستخدم متجر جديد" : "Add New User Store"}
@@ -344,7 +400,7 @@ const BranchResponsibleView = () => {
         {/* زر عائم دائري */}
         <button
           onClick={() => setOpen(true)}
-          className={`fixed bottom-6 ${fabPosition} z-50 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg w-14 h-14 flex items-center justify-center transition-all duration-200 border-4 border-white`}
+          className={`fixed bottom-6 ${fabPosition} z-50 bg-secondary hover:bg-primary text-white rounded-full shadow-lg w-14 h-14 flex items-center justify-center transition-all duration-200 border-4 border-white`}
           aria-label={locale === "ar" ? "إضافة مستخدم متجر جديد" : "Add New User Store"}
         >
           <UserPlus size={28} />

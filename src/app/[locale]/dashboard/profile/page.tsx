@@ -13,7 +13,7 @@ function ProfileEditModal({ open, onClose, user, onSave }: { open: boolean; onCl
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md relative animate-fade-in font-[Cairo]">
-        <button onClick={onClose} className="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl font-bold"><FiX /></button>
+        <button onClick={onClose} className="absolute top-3 right-3 text-gray-400 hover:text-secondary text-2xl font-bold"><FiX /></button>
         <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><FiEdit2 className="text-blue-400" />تعديل البروفايل</h2>
         <form onSubmit={e => { e.preventDefault(); onSave(form); onClose(); }} className="space-y-5">
           <div>

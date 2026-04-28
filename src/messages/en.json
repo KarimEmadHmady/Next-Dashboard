@@ -11,6 +11,7 @@
     "open": "Open sidebar",
     "areas": "Area Manager",
     "branchResponsibles": "Store Manager",
-    "branchUser2": "User Store"
+    "branchUser2": "User Store",
+    "outOfCoverage": "Out of Coverage"
   }
 } 

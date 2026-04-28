@@ -19,44 +19,109 @@ const MapComponent = dynamic(() => import("./MapComponent"), {
 const areas = [
   {
     id: 1,
-    name: { en: "First Settlement Area", ar: "منطقة التجمع الأول" },
-    location: { en: "First Settlement", ar: "التجمع الأول" },
-    coordinates: { lat: 30.0275, lng: 31.4913 }, // التجمع الأول
+    name: { en: "Cairo Area", ar: "منطقة القاهرة" },
+    location: { en: "Cairo", ar: "القاهرة" },
+    coordinates: { lat: 30.0444, lng: 31.2357 },
     manager: { en: "Ahmed Hassan", ar: "أحمد حسن" },
     color: "#3b82f6",
-    storesCount: 8,
-    usersCount: 45,
-    performance: 92,
-    population: "125K",
-    area: "15.2 km²"
+    storesCount: 15,
+    usersCount: 120,
+    performance: 90,
+    population: "9M",
+    area: "453 km²"
   },
   {
     id: 2,
-    name: { en: "Dokki Area", ar: "منطقة الدقى" },
-    location: { en: "Dokki", ar: "الدقى" },
-    coordinates: { lat: 30.0377, lng: 31.2118 }, // الدقي
+    name: { en: "Dokki Area", ar: "منطقة الدقي" },
+    location: { en: "Dokki", ar: "الدقي" },
+    coordinates: { lat: 30.0384, lng: 31.2101 },
     manager: { en: "Youssef Ahmed", ar: "يوسف أحمد" },
     color: "#22c55e",
-    storesCount: 12,
-    usersCount: 67,
+    storesCount: 10,
+    usersCount: 80,
     performance: 88,
-    population: "98K",
-    area: "12.8 km²"
+    population: "500K",
+    area: "10 km²"
   },
   {
     id: 3,
-    name: { en: "Sheraton Area", ar: "منطقة شيراتون" },
-    location: { en: "Sheraton", ar: "شيراتون" },
-    coordinates: { lat: 30.0996, lng: 31.3758 }, // شيراتون
-    manager: { en: "Mohamed Youssef", ar: "محمد يوسف" },
+    name: { en: "Mokattam Area", ar: "منطقة المقطم" },
+    location: { en: "Mokattam", ar: "المقطم" },
+    coordinates: { lat: 30.0185, lng: 31.3033 },
+    manager: { en: "Mohamed Ali", ar: "محمد علي" },
     color: "#f59e0b",
-    storesCount: 6,
-    usersCount: 38,
-    performance: 95,
-    population: "76K",
-    area: "9.5 km²"
+    storesCount: 7,
+    usersCount: 50,
+    performance: 85,
+    population: "300K",
+    area: "20 km²"
   },
-]
+  {
+    id: 4,
+    name: { en: "Nasr City Area", ar: "منطقة مدينة نصر" },
+    location: { en: "Nasr City", ar: "مدينة نصر" },
+    coordinates: { lat: 30.0561, lng: 31.3300 },
+    manager: { en: "Omar Khaled", ar: "عمر خالد" },
+    color: "#ef4444",
+    storesCount: 18,
+    usersCount: 150,
+    performance: 93,
+    population: "2M",
+    area: "250 km²"
+  },
+  {
+    id: 5,
+    name: { en: "New Cairo Area", ar: "منطقة القاهرة الجديدة" },
+    location: { en: "New Cairo", ar: "القاهرة الجديدة" },
+    coordinates: { lat: 30.0131, lng: 31.4900 },
+    manager: { en: "Karim Adel", ar: "كريم عادل" },
+    color: "#8b5cf6",
+    storesCount: 20,
+    usersCount: 170,
+    performance: 95,
+    population: "1.5M",
+    area: "350 km²"
+  },
+  {
+    id: 6,
+    name: { en: "Shorouk & Obour Area", ar: "منطقة الشروق والعبور" },
+    location: { en: "Shorouk & Obour", ar: "الشروق والعبور" },
+    coordinates: { lat: 30.1234, lng: 31.6242 },
+    manager: { en: "Hassan Tarek", ar: "حسن طارق" },
+    color: "#06b6d4",
+    storesCount: 9,
+    usersCount: 65,
+    performance: 87,
+    population: "800K",
+    area: "300 km²"
+  },
+  {
+    id: 7,
+    name: { en: "Sheikh Zayed Area", ar: "منطقة الشيخ زايد" },
+    location: { en: "Sheikh Zayed", ar: "الشيخ زايد" },
+    coordinates: { lat: 30.0135, lng: 30.9760 },
+    manager: { en: "Mahmoud Essam", ar: "محمود عصام" },
+    color: "#84cc16",
+    storesCount: 11,
+    usersCount: 90,
+    performance: 91,
+    population: "600K",
+    area: "150 km²"
+  },
+  {
+    id: 8,
+    name: { en: "6th of October Area", ar: "منطقة 6 أكتوبر" },
+    location: { en: "6th of October", ar: "6 أكتوبر" },
+    coordinates: { lat: 29.9285, lng: 30.9188 },
+    manager: { en: "Mostafa Samir", ar: "مصطفى سمير" },
+    color: "#f97316",
+    storesCount: 14,
+    usersCount: 110,
+    performance: 89,
+    population: "1M",
+    area: "400 km²"
+  }
+];
 
 type Area = {
   id: number
@@ -129,7 +194,7 @@ function CreateCard({ heading, locale, role }: { heading: string; locale: Locale
             required
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-600"
             placeholder={locale === "ar" ? "اكتب الاسم" : "Enter full name"}
           />
         </div>
@@ -140,7 +205,7 @@ function CreateCard({ heading, locale, role }: { heading: string; locale: Locale
             required
             value={form.email}
             onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-            className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-600"
             placeholder={locale === "ar" ? "name@example.com" : "name@example.com"}
           />
         </div>
@@ -151,7 +216,7 @@ function CreateCard({ heading, locale, role }: { heading: string; locale: Locale
             required
             value={form.password}
             onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-            className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 text-gray-600"
             placeholder={locale === "ar" ? "••••••••" : "••••••••"}
           />
         </div>
@@ -161,7 +226,7 @@ function CreateCard({ heading, locale, role }: { heading: string; locale: Locale
             required
             value={form.storeId || ""}
             onChange={(e) => setForm((f) => ({ ...f, storeId: e.target.value }))}
-            className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
           >
             <option value="" disabled>
               {l.select}
@@ -190,8 +255,8 @@ function CreateCard({ heading, locale, role }: { heading: string; locale: Locale
 function Modal({ open, onClose, children }: { open: boolean; onClose: () => void; children: React.ReactNode }) {
   if (!open) return null
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md relative animate-fade-in">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md relative animate-fade-in z-[999999]">
         <button
           onClick={onClose}
           className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl font-bold"
@@ -209,9 +274,9 @@ function Modal({ open, onClose, children }: { open: boolean; onClose: () => void
 function AreaDetailsModal({ open, onClose, area, locale }: { open: boolean; onClose: () => void; area: Area | null; locale: Locale }) {
   if (!open || !area) return null
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 z-[99999]">
+    <div className="fixed inset-0  flex items-center justify-center bg-black/40 z-[99999]">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl relative animate-fade-in font-[Cairo] flex flex-col border border-gray-100 max-h-[90vh]">
-        <button onClick={onClose} className="sticky top-0 right-0 self-end z-20 mt-6 mr-6 text-gray-400 hover:text-red-500 text-3xl font-bold bg-white rounded-full">×</button>
+        <button onClick={onClose} className="sticky top-0 right-0 self-end z-20 m-5 text-gray-400 hover:text-secondary text-3xl font-bold bg-white rounded-full">×</button>
         <div className="overflow-y-auto px-8 pt-2 pb-10" style={{ maxHeight: '80vh' }}>
           <h2 className="text-3xl font-extrabold text-gray-900 mb-1">{area.name[locale]}</h2>
           <div className="text-gray-500 mb-6">{area.location[locale]}</div>
@@ -219,16 +284,16 @@ function AreaDetailsModal({ open, onClose, area, locale }: { open: boolean; onCl
             {/* معلومات أساسية عن مدير المنطقة */}
             <div className="space-y-3">
               <div className="text-lg font-bold text-gray-900 mb-2">{locale === 'ar' ? 'بيانات مدير المنطقة' : 'Area Manager Info'}</div>
-              <div className="flex items-center gap-2 text-lg"><span className="font-semibold">{locale === 'ar' ? 'الاسم:' : 'Name:'}</span> <span className="text-gray-900">{area.manager[locale]}</span></div>
-              <div className="flex items-center gap-2 text-lg"><span className="font-semibold">{locale === 'ar' ? 'البريد الإلكتروني:' : 'Email:'}</span> <span className="text-gray-500">{locale === 'ar' ? 'غير متوفر' : 'N/A'}</span></div>
-              <div className="flex items-center gap-2 text-lg"><span className="font-semibold">{locale === 'ar' ? 'رقم الهاتف:' : 'Phone:'}</span> <span className="text-gray-500">{locale === 'ar' ? 'غير متوفر' : 'N/A'}</span></div>
+              <div className="flex items-center gap-2 text-lg text-gray-700 "><span className="font-semibold">{locale === 'ar' ? 'الاسم:' : 'Name:'}</span> <span className="text-gray-900">{area.manager[locale]}</span></div>
+              <div className="flex items-center gap-2 text-lg text-gray-700 "><span className="font-semibold">{locale === 'ar' ? 'البريد الإلكتروني:' : 'Email:'}</span> <span className="text-gray-500">{locale === 'ar' ? 'غير متوفر' : 'N/A'}</span></div>
+              <div className="flex items-center gap-2 text-lg text-gray-700 "><span className="font-semibold">{locale === 'ar' ? 'رقم الهاتف:' : 'Phone:'}</span> <span className="text-gray-500">{locale === 'ar' ? 'غير متوفر' : 'N/A'}</span></div>
             </div>
             {/* معلومات أساسية عن المنطقة/المتاجر */}
             <div className="space-y-3">
               <div className="text-lg font-bold text-gray-900 mb-2">{locale === 'ar' ? 'بيانات أساسية' : 'Basic Info'}</div>
-              <div className="flex items-center gap-2 text-lg"><span className="font-semibold">{locale === 'ar' ? 'الموقع:' : 'Location:'}</span> <span className="text-gray-900">{area.location[locale]}</span></div>
-              <div className="flex items-center gap-2 text-lg"><span className="font-semibold">{locale === 'ar' ? 'عدد المتاجر:' : 'Stores:'}</span> <span className="text-gray-900">{area.storesCount}</span></div>
-              <div className="flex items-center gap-2 text-lg"><span className="font-semibold">{locale === 'ar' ? 'عدد المستخدمين:' : 'Users:'}</span> <span className="text-gray-900">{area.usersCount}</span></div>
+              <div className="flex items-center gap-2 text-lg text-gray-700 "><span className="font-semibold">{locale === 'ar' ? 'الموقع:' : 'Location:'}</span> <span className="text-gray-900">{area.location[locale]}</span></div>
+              <div className="flex items-center gap-2 text-lg text-gray-700 "><span className="font-semibold">{locale === 'ar' ? 'عدد المتاجر:' : 'Stores:'}</span> <span className="text-gray-900">{area.storesCount}</span></div>
+              <div className="flex items-center gap-2 text-lg text-gray-700 "><span className="font-semibold">{locale === 'ar' ? 'عدد المستخدمين:' : 'Users:'}</span> <span className="text-gray-900">{area.usersCount}</span></div>
             </div>
           </div>
           {/* خريطة */}
@@ -466,7 +531,7 @@ const AreaManagerView = () => {
         <div className="w-full flex justify-center mt-12 mb-8">
           <button
             onClick={() => setOpen(true)}
-            className="w-full max-w-md bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-xl text-lg shadow-lg transition-all duration-200 flex items-center justify-center gap-3"
+            className="w-full max-w-md bg-secondary hover:bg-primary text-white font-bold py-3 px-6 rounded-xl text-lg shadow-lg transition-all duration-200 flex items-center justify-center gap-3"
           >
             <UserPlus size={24} />
             {locale === "ar" ? "إضافة مستخدم جديد" : "Add New User"}
@@ -476,7 +541,7 @@ const AreaManagerView = () => {
         {/* زر عائم دائري */}
         <button
           onClick={() => setOpen(true)}
-          className={`fixed bottom-6 ${fabPosition} z-50 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg w-16 h-16 flex items-center justify-center transition-all duration-200 border-4 border-white z-[99999]`}
+          className={`fixed bottom-6 ${fabPosition} z-50 bg-secondary hover:bg-primary text-white rounded-full shadow-lg w-16 h-16 flex items-center justify-center transition-all duration-200 border-4 border-white z-[99999]`}
           aria-label={locale === "ar" ? "إضافة مستخدم جديد" : "Add New User"}
         >
           <UserPlus size={32} />

@@ -8,7 +8,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useParams } from "next/navigation"
 import en from "@/messages/en.json"
 import ar from "@/messages/ar.json"
-import { FiHome, FiMapPin, FiLayers, FiShoppingCart, FiLogOut, FiUsers, FiUserCheck } from "react-icons/fi"
+import { FiHome, FiMapPin, FiLayers, FiShoppingCart, FiLogOut, FiUsers, FiUserCheck, FiAlertCircle } from "react-icons/fi"
 
 const translations: Record<string, any> = { en, ar }
 
@@ -55,6 +55,11 @@ const sidebarLinks = [
     href: "branch-user",
     labelKey: "sidebar.branchUser2",
     icon: <FiUserCheck className="w-5 h-5 text-pink-500 group-hover:text-pink-600 transition-colors duration-200" />,
+  },
+  {
+    href: "out-of-coverage",
+    labelKey: "sidebar.outOfCoverage",
+    icon: <FiAlertCircle className="w-5 h-5 text-red-500 group-hover:text-red-600 transition-colors duration-200" />,
   },
 ]
 
@@ -208,12 +213,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, setSidebarOpen }) => {
                     <img
                       src={userProfile.avatarUrl || "/avatar.webp"}
                       alt={userProfile.name}
-                      className="w-16 h-16 rounded-full object-cover shadow-sm border border-white group-hover:ring-2 group-hover:ring-red-400 transition"
+                      className="w-16 h-16 rounded-full object-cover shadow-sm border border-white group-hover:ring-2 group-hover:ring-teal-400 transition"
                     />
                     <span className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full shadow-md"></span>
                   </div>
                   <div className="text-center">
-                    <p className="text-sm font-medium text-gray-900 leading-none group-hover:text-red-600 transition">{userProfile.name}</p>
+                    <p className="text-sm font-medium text-gray-900 leading-none group-hover:text-secondary transition">{userProfile.name}</p>
                     <p className="text-xs text-gray-500 mt-0.5">
                       {(() => {
                         const matched = sidebarLinks.find((l) => pathname.includes(`/dashboard/${l.href}`))
@@ -248,7 +253,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, setSidebarOpen }) => {
                 <li key={link.href}>
                   <Link
                     href={`/${locale}/dashboard/${link.href}`}
-                    className="flex items-center p-1 text-base font-medium text-gray-700 rounded-xl hover:bg-red-100 hover:text-gray-900 group transition-all duration-200 hover:shadow-md hover:scale-[1.02] border border-transparent hover:border-red-100"
+                    className="flex items-center p-1 text-base font-medium text-gray-700 rounded-xl hover:bg-teal-100 hover:text-gray-900 group transition-all duration-200 hover:shadow-md hover:scale-[1.02] border border-transparent hover:border-teal-100"
                   >
                     <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-50 group-hover:bg-white group-hover:shadow-sm transition-all duration-200 mr-4">
                       {link.icon}
@@ -366,7 +371,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, setSidebarOpen }) => {
                     <li key={link.href}>
                       <Link
                         href={`/${locale}/dashboard/${link.href}`}
-                        className="flex items-center p-4 text-base font-medium text-gray-700 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:text-gray-900 group transition-all duration-200 hover:shadow-md border border-transparent hover:border-red-100"
+                        className="flex items-center p-4 text-base font-medium text-gray-700 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:text-gray-900 group transition-all duration-200 hover:shadow-md border border-transparent hover:border-teal-100"
                         onClick={() => setSidebarOpen(false)}
                       >
                         <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-50 group-hover:bg-white group-hover:shadow-sm transition-all duration-200 mr-4">

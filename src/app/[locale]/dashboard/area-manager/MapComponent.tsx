@@ -258,7 +258,7 @@ const MapComponent = ({ areas, locale }: MapComponentProps) => {
       </div>
       
       {/* إحصائيات إضافية */}
-      <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+      {/* <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
         <div className="text-sm text-blue-800 text-center">
           <span className="font-semibold">
             {locale === "ar" ? "إجمالي المساحة:" : "Total Area:"}
@@ -270,7 +270,7 @@ const MapComponent = ({ areas, locale }: MapComponentProps) => {
           </span>{" "}
           <span className="text-blue-600">299K</span>
         </div>
-      </div>
+      </div> */}
     </div>
   )
 }

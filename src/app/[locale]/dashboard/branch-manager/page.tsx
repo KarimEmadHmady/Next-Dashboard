@@ -110,9 +110,9 @@ function StoreModal({ open, onClose, store, locale }: { open: boolean; onClose: 
           <div className="mb-8 flex flex-col md:flex-row gap-8 w-full">
             {/* بيانات الفرع */}
             <div className="flex-1 space-y-3">
-              <div className="flex items-center gap-2 text-lg"><FiUsers className="text-emerald-500" /> <span className="font-semibold">{locale === 'ar' ? 'عدد الموظفين:' : 'Employees:'}</span> <span>{store.employees}</span></div>
-              <div className="flex items-center gap-2 text-lg"><FiMapPin className="text-secondary" /> <span className="font-semibold">{locale === 'ar' ? 'العنوان:' : 'Address:'}</span> <span>{fakeLocation.address[locale]}</span></div>
-              <div className="flex items-center gap-2 text-lg"><FiList className="text-indigo-500" /> <span className="font-semibold">{locale === 'ar' ? 'كود الفرع:' : 'Branch ID:'}</span> <span>{store.id}</span></div>
+              <div className="flex items-center gap-2 text-lg text-gray-600"><FiUsers className="text-emerald-500" /> <span className="font-semibold">{locale === 'ar' ? 'عدد الموظفين:' : 'Employees:'}</span> <span>{store.employees}</span></div>
+              <div className="flex items-center gap-2 text-lg text-gray-600"><FiMapPin className="text-secondary" /> <span className="font-semibold">{locale === 'ar' ? 'العنوان:' : 'Address:'}</span> <span>{fakeLocation.address[locale]}</span></div>
+              <div className="flex items-center gap-2 text-lg text-gray-600"><FiList className="text-indigo-500" /> <span className="font-semibold">{locale === 'ar' ? 'كود الفرع:' : 'Branch ID:'}</span> <span>{store.id}</span></div>
             </div>
             {/* خريطة الموقع */}
             <div className="flex-1 min-w-[250px]">
@@ -159,9 +159,9 @@ function StoreModal({ open, onClose, store, locale }: { open: boolean; onClose: 
                 </thead>
                 <tbody>
                   {fakeOrders.map((o) => (
-                    <tr key={o.id} className="border-t">
+                    <tr key={o.id} className="border-t text-center">
                       <td className="px-4 py-2 text-gray-900 font-bold">{o.id}</td>
-                      <td className="px-4 py-2">{o.date}</td>
+                      <td className="px-4 py-2 text-blue-700">{o.date}</td>
                       <td className="px-4 py-2 text-blue-700 font-bold">{o.total} L.E</td>
                       <td className="px-4 py-2">
                         <span className={`inline-block rounded-full px-3 py-1 text-xs font-bold ${o.status === 'completed' ? 'bg-green-100 text-green-700' : o.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-200 text-gray-700'}`}>{o.status}</span>

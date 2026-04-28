@@ -139,14 +139,14 @@ function OrderDetailsModal({ open, onClose, order, locale }: { open: boolean; on
             <span className={`w-2 h-2 rounded-full ${meta.dot}`} /> {meta[locale]}
           </div>
           <div className="space-y-4">
-            <div className="flex items-center gap-2 text-lg"><span className="font-semibold">{locale === 'ar' ? 'الفرع:' : 'Branch:'}</span> <span className="text-gray-900">{order.branch[locale]}</span></div>
-            <div className="flex items-center gap-2 text-lg"><span className="font-semibold">{locale === 'ar' ? 'مدير المنطقة:' : 'Area Manager:'}</span> <span className="text-gray-900">{areaManager}</span></div>
-            <div className="flex items-center gap-2 text-lg"><span className="font-semibold">{locale === 'ar' ? 'المبيعات:' : 'Sales:'}</span> <span className="text-gray-500">{salesPerson}</span></div>
+            <div className="flex items-center gap-2 text-lg text-gray-600"><span className="font-semibold">{locale === 'ar' ? 'الفرع:' : 'Branch:'}</span> <span className="text-gray-900">{order.branch[locale]}</span></div>
+            <div className="flex items-center gap-2 text-lg text-gray-600"><span className="font-semibold">{locale === 'ar' ? 'مدير المنطقة:' : 'Area Manager:'}</span> <span className="text-gray-900">{areaManager}</span></div>
+            <div className="flex items-center gap-2 text-lg text-gray-600"><span className="font-semibold">{locale === 'ar' ? 'المبيعات:' : 'Sales:'}</span> <span className="text-gray-500">{salesPerson}</span></div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-center gap-2 text-lg"><span className="font-semibold">{locale === 'ar' ? 'التاريخ:' : 'Date:'}</span> <span className="text-gray-900">{order.date}</span></div>
-              <div className="flex items-center gap-2 text-lg"><span className="font-semibold">{locale === 'ar' ? 'الوقت:' : 'Time:'}</span> <span className="text-gray-900">{order.time}</span></div>
+              <div className="flex items-center gap-2 text-lg text-gray-600"><span className="font-semibold">{locale === 'ar' ? 'التاريخ:' : 'Date:'}</span> <span className="text-gray-900">{order.date}</span></div>
+              <div className="flex items-center gap-2 text-lg text-gray-600"><span className="font-semibold">{locale === 'ar' ? 'الوقت:' : 'Time:'}</span> <span className="text-gray-900">{order.time}</span></div>
             </div>
-            <div className="flex items-center gap-2 text-lg"><span className="font-semibold">{locale === 'ar' ? 'الإجمالي:' : 'Total:'}</span> <span className="text-blue-700 font-bold">{order.total} L.E</span></div>
+            <div className="flex items-center gap-2 text-lg text-gray-600"><span className="font-semibold">{locale === 'ar' ? 'الإجمالي:' : 'Total:'}</span> <span className="text-blue-700 font-bold">{order.total} L.E</span></div>
           </div>
         </div>
       </div>

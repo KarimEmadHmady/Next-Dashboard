@@ -1,352 +1,429 @@
 "use client"
+
+import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { useParams } from "next/navigation"
-import { User, Store, Briefcase, BadgeDollarSign, ClipboardList, Users, Search } from "lucide-react"
-import { useState } from "react"
-import { FiUser, FiMail, FiPhone, FiUserCheck, FiX, FiEdit2, FiTrash2, FiCheck } from "react-icons/fi"
-import React from "react"
+import {
+  User,
+  Users,
+  Store,
+  MapPin,
+  UserPlus,
+  Mail,
+  Phone,
+  Search,
+  CheckCircle2,
+  XCircle,
+  Edit2,
+  Trash2,
+  Filter,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react"
+import { UserItem, StoreOption } from "@/types/user"
+import { userService } from "@/services/userService"
+import UserModal from "@/components/common/UserModal"
+import DeleteConfirmModal from "@/components/common/DeleteConfirmModal"
 
-type Staff = {
-  id: number
-  name: { en: string; ar: string }
-  branch: { en: string; ar: string }
-  role: { en: string; ar: string }
-  salary: number
-  ordersHandled: number
-  color: string
-}
-
-const staffList: Staff[] = [
-  // First Settlement (approx 10)
-  { id: 1, name: { en: "Omar Ali", ar: "عمر علي" }, branch: { en: "Store - First Settlement", ar: "المتجر - التجمع الاول" }, role: { en: "Sales", ar: "مبيعات" }, salary: 6500, ordersHandled: 58, color: "#3b82f6" },
-  { id: 2, name: { en: "Nour Ahmed", ar: "نور أحمد" }, branch: { en: "Store - First Settlement", ar: "المتجر - التجمع الاول" }, role: { en: "Sales Lead", ar: "مسؤول مبيعات" }, salary: 7200, ordersHandled: 73, color: "#a855f7" },
-  { id: 3, name: { en: "Mahmoud Farid", ar: "محمود فريد" }, branch: { en: "Store - First Settlement", ar: "المتجر - التجمع الاول" }, role: { en: "Cashier", ar: "كاشير" }, salary: 5600, ordersHandled: 65, color: "#06b6d4" },
-  { id: 4, name: { en: "Yara Tarek", ar: "يارا طارق" }, branch: { en: "Store - First Settlement", ar: "المتجر - التجمع الاول" }, role: { en: "Sales", ar: "مبيعات" }, salary: 6000, ordersHandled: 49, color: "#22c55e" },
-  { id: 5, name: { en: "Khaled Samir", ar: "خالد سمير" }, branch: { en: "Store - First Settlement", ar: "المتجر - التجمع الاول" }, role: { en: "Office Boy", ar: "أوفيس بوي" }, salary: 4300, ordersHandled: 0, color: "#f59e0b" },
-  { id: 6, name: { en: "Mariam Adel", ar: "مريم عادل" }, branch: { en: "Store - First Settlement", ar: "المتجر - التجمع الاول" }, role: { en: "Sales", ar: "مبيعات" }, salary: 6100, ordersHandled: 34, color: "#3b82f6" },
-  { id: 7, name: { en: "Ahmed Saeed", ar: "أحمد سعيد" }, branch: { en: "Store - First Settlement", ar: "المتجر - التجمع الاول" }, role: { en: "Cashier", ar: "كاشير" }, salary: 5550, ordersHandled: 53, color: "#06b6d4" },
-  { id: 8, name: { en: "Laila Mostafa", ar: "ليلى مصطفى" }, branch: { en: "Store - First Settlement", ar: "المتجر - التجمع الاول" }, role: { en: "Sales", ar: "مبيعات" }, salary: 5900, ordersHandled: 28, color: "#22c55e" },
-  { id: 9, name: { en: "Hany Fathy", ar: "هاني فتحي" }, branch: { en: "Store - First Settlement", ar: "المتجر - التجمع الاول" }, role: { en: "Sales", ar: "مبيعات" }, salary: 6050, ordersHandled: 44, color: "#3b82f6" },
-  { id: 10, name: { en: "Dina Nabil", ar: "دينا نبيل" }, branch: { en: "Store - First Settlement", ar: "المتجر - التجمع الاول" }, role: { en: "Sales", ar: "مبيعات" }, salary: 5800, ordersHandled: 39, color: "#a855f7" },
-
-  // Dokki (approx 10)
-  { id: 11, name: { en: "Hassan Mostafa", ar: "حسن مصطفى" }, branch: { en: "Store - Dokki", ar: "المتجر - الدقى" }, role: { en: "Cashier", ar: "كاشير" }, salary: 5700, ordersHandled: 41, color: "#22c55e" },
-  { id: 12, name: { en: "Salma Ahmed", ar: "سلمى أحمد" }, branch: { en: "Store - Dokki", ar: "المتجر - الدقى" }, role: { en: "Sales", ar: "مبيعات" }, salary: 5950, ordersHandled: 33, color: "#3b82f6" },
-  { id: 13, name: { en: "Karim Magdy", ar: "كريم مجدي" }, branch: { en: "Store - Dokki", ar: "المتجر - الدقى" }, role: { en: "Sales Lead", ar: "مسؤول مبيعات" }, salary: 7300, ordersHandled: 80, color: "#a855f7" },
-  { id: 14, name: { en: "Sherif Nader", ar: "شريف نادر" }, branch: { en: "Store - Dokki", ar: "المتجر - الدقى" }, role: { en: "Sales", ar: "مبيعات" }, salary: 6000, ordersHandled: 27, color: "#22c55e" },
-  { id: 15, name: { en: "Heba Fares", ar: "هبة فارس" }, branch: { en: "Store - Dokki", ar: "المتجر - الدقى" }, role: { en: "Cashier", ar: "كاشير" }, salary: 5650, ordersHandled: 38, color: "#06b6d4" },
-  { id: 16, name: { en: "Aya Hassan", ar: "آية حسن" }, branch: { en: "Store - Dokki", ar: "المتجر - الدقى" }, role: { en: "Sales", ar: "مبيعات" }, salary: 5850, ordersHandled: 26, color: "#22c55e" },
-  { id: 17, name: { en: "Marwan Essam", ar: "مروان عصام" }, branch: { en: "Store - Dokki", ar: "المتجر - الدقى" }, role: { en: "Office Boy", ar: "أوفيس بوي" }, salary: 4200, ordersHandled: 0, color: "#f59e0b" },
-  { id: 18, name: { en: "Rana Tamer", ar: "رنا تامر" }, branch: { en: "Store - Dokki", ar: "المتجر - الدقى" }, role: { en: "Sales", ar: "مبيعات" }, salary: 6020, ordersHandled: 31, color: "#3b82f6" },
-  { id: 19, name: { en: "Ola Fathy", ar: "عُلا فتحي" }, branch: { en: "Store - Dokki", ar: "المتجر - الدقى" }, role: { en: "Sales", ar: "مبيعات" }, salary: 5900, ordersHandled: 22, color: "#22c55e" },
-  { id: 20, name: { en: "Mostafa Hamed", ar: "مصطفى حامد" }, branch: { en: "Store - Dokki", ar: "المتجر - الدقى" }, role: { en: "Sales", ar: "مبيعات" }, salary: 6000, ordersHandled: 36, color: "#3b82f6" },
-
-  // Sheraton (approx 10)
-  { id: 21, name: { en: "Mostafa Adel", ar: "مصطفى عادل" }, branch: { en: "Store - Sheraton", ar: "المتجر - شيراتون" }, role: { en: "Office Boy", ar: "أوفيس بوي" }, salary: 4200, ordersHandled: 0, color: "#f59e0b" },
-  { id: 22, name: { en: "Hadi Ramy", ar: "هادي رامي" }, branch: { en: "Store - Sheraton", ar: "المتجر - شيراتون" }, role: { en: "Sales", ar: "مبيعات" }, salary: 5900, ordersHandled: 24, color: "#22c55e" },
-  { id: 23, name: { en: "Nadine Salah", ar: "نادين صلاح" }, branch: { en: "Store - Sheraton", ar: "المتجر - شيراتون" }, role: { en: "Cashier", ar: "كاشير" }, salary: 5600, ordersHandled: 40, color: "#06b6d4" },
-  { id: 24, name: { en: "Said Gomaa", ar: "سعيد جمعة" }, branch: { en: "Store - Sheraton", ar: "المتجر - شيراتون" }, role: { en: "Sales", ar: "مبيعات" }, salary: 6050, ordersHandled: 37, color: "#3b82f6" },
-  { id: 25, name: { en: "Alaa Emad", ar: "علاء عماد" }, branch: { en: "Store - Sheraton", ar: "المتجر - شيراتون" }, role: { en: "Sales Lead", ar: "مسؤول مبيعات" }, salary: 7400, ordersHandled: 79, color: "#a855f7" },
-  { id: 26, name: { en: "Hager Taha", ar: "هاجر طه" }, branch: { en: "Store - Sheraton", ar: "المتجر - شيراتون" }, role: { en: "Sales", ar: "مبيعات" }, salary: 5900, ordersHandled: 29, color: "#22c55e" },
-  { id: 27, name: { en: "Omar Nasr", ar: "عمر نصر" }, branch: { en: "Store - Sheraton", ar: "المتجر - شيراتون" }, role: { en: "Cashier", ar: "كاشير" }, salary: 5550, ordersHandled: 42, color: "#06b6d4" },
-  { id: 28, name: { en: "Nermeen Atef", ar: "نيرمين عاطف" }, branch: { en: "Store - Sheraton", ar: "المتجر - شيراتون" }, role: { en: "Sales", ar: "مبيعات" }, salary: 6000, ordersHandled: 35, color: "#3b82f6" },
-  { id: 29, name: { en: "Ramy Ahmed", ar: "رامي أحمد" }, branch: { en: "Store - Sheraton", ar: "المتجر - شيراتون" }, role: { en: "Sales", ar: "مبيعات" }, salary: 5850, ordersHandled: 21, color: "#22c55e" },
-  { id: 30, name: { en: "Hatem Fathy", ar: "حاتم فتحي" }, branch: { en: "Store - Sheraton", ar: "المتجر - شيراتون" }, role: { en: "Sales", ar: "مبيعات" }, salary: 6100, ordersHandled: 34, color: "#3b82f6" },
-]
-
-type StaffEditForm = {
-  name: string;
-  role: string;
-  branch: string;
-  salary: number;
-  ordersHandled: number;
-  hiredAt: string;
-  rating: number;
-  status: string;
-};
-
-function StaffEditModal({ open, onClose, staff, locale, onSave }: { open: boolean; onClose: () => void; staff: Staff | null; locale: 'ar' | 'en'; onSave: (data: StaffEditForm) => void }) {
-  const initialForm: StaffEditForm = staff ? {
-    name: staff.name[locale] || "",
-    role: staff.role[locale] || "",
-    branch: staff.branch[locale] || "",
-    salary: staff.salary || 0,
-    ordersHandled: staff.ordersHandled || 0,
-    hiredAt: '2022-03-15',
-    rating: 4.7,
-    status: locale === 'ar' ? 'نشط' : 'Active',
-  } : {
-    name: '', role: '', branch: '', salary: 0, ordersHandled: 0, hiredAt: '', rating: 0, status: ''
-  };
-  const [form, setForm] = useState<StaffEditForm>(initialForm);
-  React.useEffect(() => {
-    if (staff) {
-      setForm({
-        name: staff.name[locale] || "",
-        role: staff.role[locale] || "",
-        branch: staff.branch[locale] || "",
-        salary: staff.salary || 0,
-        ordersHandled: staff.ordersHandled || 0,
-        hiredAt: '2022-03-15',
-        rating: 4.7,
-        status: locale === 'ar' ? 'نشط' : 'Active',
-      });
-    }
-  }, [staff, locale]);
-  if (!open || !staff) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-3xl shadow-2xl p-10 w-full max-w-2xl relative animate-fade-in font-[Cairo] flex flex-col items-center border border-gray-100">
-        <button onClick={onClose} className="absolute top-5 right-5 text-gray-400 hover:text-secondary text-3xl font-bold"><FiX /></button>
-        <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2"><FiEdit2 className="text-blue-400" />{locale === 'ar' ? 'تعديل بيانات المستخدم' : 'Edit User Data'}</h2>
-        <form onSubmit={e => { e.preventDefault(); onSave(form); onClose(); }} className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-          <div>
-            <label className="block text-sm font-semibold mb-1 text-gray-700">{locale === 'ar' ? 'الاسم' : 'Name'}</label>
-            <input type="text" className="w-full h-11 rounded-lg border border-gray-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 font-[Cairo]" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold mb-1 text-gray-700">{locale === 'ar' ? 'الدور' : 'Role'}</label>
-            <input type="text" className="w-full h-11 rounded-lg border border-gray-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 font-[Cairo]" value={form.role} onChange={e => setForm({ ...form, role: e.target.value })} required />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold mb-1 text-gray-700">{locale === 'ar' ? 'الفرع' : 'Branch'}</label>
-            <input type="text" className="w-full h-11 rounded-lg border border-gray-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 font-[Cairo]" value={form.branch} onChange={e => setForm({ ...form, branch: e.target.value })} required />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold mb-1 text-gray-700">{locale === 'ar' ? 'الراتب' : 'Salary'}</label>
-            <input type="number" className="w-full h-11 rounded-lg border border-gray-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 font-[Cairo]" value={form.salary} onChange={e => setForm({ ...form, salary: +e.target.value })} required />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold mb-1 text-gray-700">{locale === 'ar' ? 'الطلبات التي تمت معالجتها' : 'Orders Handled'}</label>
-            <input type="number" className="w-full h-11 rounded-lg border border-gray-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 font-[Cairo]" value={form.ordersHandled} onChange={e => setForm({ ...form, ordersHandled: +e.target.value })} required />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold mb-1 text-gray-700">{locale === 'ar' ? 'تاريخ التعيين' : 'Hired At'}</label>
-            <input type="date" className="w-full h-11 rounded-lg border border-gray-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 font-[Cairo]" value={form.hiredAt} onChange={e => setForm({ ...form, hiredAt: e.target.value })} required />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold mb-1 text-gray-700">{locale === 'ar' ? 'التقييم' : 'Rating'}</label>
-            <input type="number" step="0.1" min="0" max="5" className="w-full h-11 rounded-lg border border-gray-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 font-[Cairo]" value={form.rating} onChange={e => setForm({ ...form, rating: +e.target.value })} required />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold mb-1 text-gray-700">{locale === 'ar' ? 'الحالة' : 'Status'}</label>
-            <input type="text" className="w-full h-11 rounded-lg border border-gray-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 font-[Cairo]" value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} required />
-          </div>
-          <div className="md:col-span-2 flex justify-end mt-4">
-            <button type="submit" className="w-full md:w-auto h-11 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold flex items-center justify-center gap-2 transition px-8"><FiCheck /> {locale === 'ar' ? 'تأكيد التعديل' : 'Confirm Edit'}</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-function StaffModal({ open, onClose, staff, locale, onEdit, onDelete }: { open: boolean; onClose: () => void; staff: Staff | null; locale: 'ar' | 'en'; onEdit: () => void; onDelete: () => void }) {
-  if (!open || !staff) return null;
-  const fakeData = {
-    status: locale === 'ar' ? 'نشط' : 'Active',
-    rating: 4.7,
-    hiredAt: locale === 'ar' ? '2022-03-15' : '2022-03-15',
-    avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(staff.name[locale])}&background=0D8ABC&color=fff&size=256`,
-  };
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-3xl shadow-2xl p-10 w-full max-w-2xl relative animate-fade-in font-[Cairo] flex flex-col items-center border border-gray-100">
-        <button onClick={onClose} className="absolute top-5 right-5 text-gray-400 hover:text-secondary text-3xl font-bold"><FiX /></button>
-        <div className="flex flex-col items-center -mt-10 mb-6">
-          <div className="relative">
-            <img src={fakeData.avatar} alt={staff.name[locale]} className="w-32 h-32 rounded-full border-4 border-white shadow-xl object-cover bg-white" />
-            <span className="absolute bottom-2 right-2 w-5 h-5 bg-green-500 border-2 border-white rounded-full shadow-md"></span>
-          </div>
-          <h2 className="text-3xl font-extrabold text-gray-900 mt-4 mb-1 flex items-center gap-2"><FiUser className="text-blue-400" />{staff.name[locale]}</h2>
-          <div className="text-lg text-gray-500 mb-2">{staff.role[locale]}</div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full mt-2">
-          <ul className="space-y-4 text-lg">
-            <li className="flex items-center gap-2 text-gray-700"><FiUserCheck className="text-purple-500" /> <span className="font-semibold">{locale === "ar" ? "الحالة:" : "Status:"}</span> <span className="text-green-600 font-bold">{fakeData.status}</span></li>
-            <li className="flex items-center gap-2 text-gray-700"><FiMail className="text-blue-500" /> <span className="font-semibold">{locale === "ar" ? "البريد الإلكتروني:" : "Email:"}</span> <span className="text-gray-400">غير متوفر</span></li>
-            <li className="flex items-center gap-2 text-gray-700"><FiPhone className="text-green-500" /> <span className="font-semibold">{locale === "ar" ? "رقم الهاتف:" : "Phone:"}</span> <span className="text-gray-400">غير متوفر</span></li>
-            <li className="flex items-center gap-2 text-gray-700"><span className="font-semibold">{locale === "ar" ? "الفرع:" : "Branch:"}</span> <span>{staff.branch[locale]}</span></li>
-          </ul>
-          <ul className="space-y-4 text-lg">
-            <li className="flex items-center gap-2 text-gray-700"><span className="font-semibold">{locale === "ar" ? "الراتب:" : "Salary:"}</span> <span className="text-blue-700 font-bold">{staff.salary} L.E</span></li>
-            <li className="flex items-center gap-2 text-gray-700"><span className="font-semibold">{locale === "ar" ? "الطلبات التي تمت معالجتها:" : "Orders handled:"}</span> <span className="text-indigo-700 font-bold">{staff.ordersHandled}</span></li>
-            <li className="flex items-center gap-2 text-gray-700"><span className="font-semibold">{locale === "ar" ? "تاريخ التعيين:" : "Hired at:"}</span> <span>{fakeData.hiredAt}</span></li>
-            <li className="flex items-center gap-2 text-gray-700"><span className="font-semibold">{locale === "ar" ? "التقييم:" : "Rating:"}</span> <span className="text-yellow-500 font-bold">★ {fakeData.rating}</span></li>
-          </ul>
-        </div>
-        <div className="flex gap-4 mt-8">
-          <button onClick={onEdit} className="flex items-center gap-2 px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg transition"><FiEdit2 /> {locale === 'ar' ? 'تعديل' : 'Edit'}</button>
-          <button onClick={onDelete} className="flex items-center gap-2 px-6 py-2 rounded-lg bg-secondary hover:bg-primary text-white font-bold text-lg transition"><FiTrash2 /> {locale === 'ar' ? 'حذف' : 'Delete'}</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// خريطة أسماء المتاجر حسب المعرف
-const storeLabelById: Record<string, { en: string; ar: string }> = {
-  "first-settlement": { en: "Store - First Settlement", ar: "المتجر - التجمع الاول" },
-  dokki: { en: "Store - Dokki", ar: "المتجر - الدقى" },
-  sheraton: { en: "Store - Sheraton", ar: "المتجر - شيراتون" },
-}
-
-function mapUserStoreToStaff(u: any, nextIdStart: number): Staff {
-  const store = u.storeId && storeLabelById[u.storeId] ? storeLabelById[u.storeId] : { en: "Store", ar: "متجر" }
-  return {
-    id: nextIdStart,
-    name: { en: String(u.name || "User Store"), ar: String(u.name || "مستخدم متجر") },
-    branch: store,
-    role: { en: "User Store", ar: "مستخدم المتجر" },
-    salary: 0,
-    ordersHandled: 0,
-    color: "#3b82f6",
-  }
-}
-
-const BranchUser2View = () => {
+export default function BranchUserPage() {
   const params = useParams()
-  const locale: 'ar' | 'en' =
+  const locale: "ar" | "en" =
     (typeof params?.locale === "string" && (params.locale === "ar" || params.locale === "en") && params.locale) ||
-    (Array.isArray(params?.locale) && (params?.locale[0] === "ar" || params?.locale[0] === "en") && params?.locale[0]) ||
-    "en"
+    "ar"
+  const isRTL = locale === "ar"
 
-  const title = locale === "ar" ? "مستخدمو الفروع" : "Branch Users"
-  const branchLabel = locale === "ar" ? "الفرع" : "Branch"
-  const roleLabel = locale === "ar" ? "الدور" : "Role"
-  const salaryLabel = locale === "ar" ? "الراتب" : "Salary"
-  const ordersLabel = locale === "ar" ? "الطلبات التي تمت معالجتها" : "Orders handled"
+  const [users, setUsers] = useState<UserItem[]>([])
+  const [stores, setStores] = useState<StoreOption[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [selectedStoreId, setSelectedStoreId] = useState("")
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all")
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
 
-  const [search, setSearch] = useState("")
-  const [extraUsers, setExtraUsers] = useState<Staff[]>([])
+  // Modals state
+  const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [editUser, setEditUser] = useState<UserItem | null>(null)
+  const [deleteUserTarget, setDeleteUserTarget] = useState<UserItem | null>(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  const [togglingStatusId, setTogglingStatusId] = useState<string | null>(null)
 
-  React.useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const raw = window.localStorage.getItem("userStores") || "[]"
-        const arr = JSON.parse(raw)
-        if (Array.isArray(arr)) {
-          const mapped: Staff[] = arr.map((u: any, idx: number) => mapUserStoreToStaff(u, 10000 + idx))
-          setExtraUsers(mapped)
-        }
-      } catch {}
+  // Load stores list for branch filter
+  useEffect(() => {
+    let isMounted = true
+    userService.getStores().then((list) => {
+      if (isMounted) setStores(list)
+    })
+    return () => {
+      isMounted = false
     }
   }, [])
 
-  const allStaff: Staff[] = React.useMemo(() => [...extraUsers, ...staffList], [extraUsers])
-  const filteredStaff = allStaff.filter((s) => s.name[locale].toLowerCase().includes(search.toLowerCase()))
+  // Load store users from backend
+  const loadUsers = async () => {
+    setLoading(true)
+    try {
+      const res = await userService.listUsers({
+        role: "STORE_USER",
+        page,
+        limit: 12,
+        search: searchTerm.trim() || undefined,
+        storeId: selectedStoreId || undefined,
+        isActive: statusFilter === "all" ? undefined : statusFilter === "active",
+      })
+      setUsers(res.data)
+      setTotalPages(res.meta.totalPages || 1)
+      setTotalCount(res.meta.total || 0)
+    } catch (err) {
+      console.error("Failed to load store users:", err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-  const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
-  const [staffListState, setStaffListState] = useState(staffList);
+  useEffect(() => {
+    loadUsers()
+  }, [page, selectedStoreId, statusFilter])
 
-  const handleEdit = (data: any) => {
-    if (!selectedStaff) return;
-    setStaffListState(list => list.map(s => s.id === selectedStaff.id ? {
-      ...s,
-      name: { ...s.name, [locale]: data.name },
-      role: { ...s.role, [locale]: data.role },
-      branch: { ...s.branch, [locale]: data.branch },
-      salary: data.salary,
-      ordersHandled: data.ordersHandled,
-      // البيانات الإضافية يمكن حفظها في متغيرات منفصلة أو تجاهلها هنا
-    } : s));
-    setSelectedStaff(s => s ? { ...s, name: { ...s.name, [locale]: data.name }, role: { ...s.role, [locale]: data.role }, branch: { ...s.branch, [locale]: data.branch }, salary: data.salary, ordersHandled: data.ordersHandled } : s);
-  };
-  const handleDelete = () => {
-    if (!selectedStaff) return;
-    setStaffListState(list => list.filter(s => s.id !== selectedStaff.id));
-    setModalOpen(false);
-    setSelectedStaff(null);
-  };
+  // Search debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(1)
+      loadUsers()
+    }, 350)
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
+  const handleToggleStatus = async (userItem: UserItem) => {
+    setTogglingStatusId(userItem.id)
+    try {
+      const updated = await userService.updateStatus(userItem.id, !userItem.isActive)
+      setUsers((prev) =>
+        prev.map((u) => (u.id === updated.id ? { ...u, isActive: updated.isActive } : u))
+      )
+    } catch (err: any) {
+      alert(err?.message || "Failed to update status")
+    } finally {
+      setTogglingStatusId(null)
+    }
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteUserTarget) return
+    setDeleteLoading(true)
+    try {
+      await userService.deleteUser(deleteUserTarget.id)
+      setUsers((prev) => prev.filter((u) => u.id !== deleteUserTarget.id))
+      setTotalCount((c) => Math.max(0, c - 1))
+      setDeleteUserTarget(null)
+    } catch (err: any) {
+      alert(err?.message || "Failed to delete user")
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
+
+  const handleUserSaved = (saved: UserItem) => {
+    setUsers((prev) => {
+      const exists = prev.some((u) => u.id === saved.id)
+      if (exists) {
+        return prev.map((u) => (u.id === saved.id ? saved : u))
+      }
+      return [saved, ...prev]
+    })
+    setTotalCount((c) => c + 1)
+  }
 
   return (
-    <div className="min-h-screen  p-4 sm:p-6 md:p-8" style={{ backgroundImage: "url('/background.jpg')", backgroundRepeat: 'repeat' }}>
-      <StaffModal open={modalOpen} onClose={() => setModalOpen(false)} staff={selectedStaff} locale={locale} onEdit={() => { setEditOpen(true); }} onDelete={handleDelete} />
-      <StaffEditModal open={editOpen} onClose={() => setEditOpen(false)} staff={selectedStaff} locale={locale} onSave={handleEdit} />
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="mb-6 sm:mb-8"
-      >
-        <motion.h2
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-          className="text-gray-900 font-extrabold text-2xl sm:text-3xl rounded-xl px-4 py-2 flex items-center gap-3"
+    <div className={`p-4 sm:p-6 lg:p-8 min-h-screen bg-gray-50/50 ${isRTL ? "font-arabic" : ""}`} dir={isRTL ? "rtl" : "ltr"}>
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-10 h-10 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-600">
+              <Users className="w-6 h-6" />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+              {isRTL ? "مستخدمو الفروع (Store Users)" : "Branch Users"}
+            </h1>
+          </div>
+          <p className="text-sm text-gray-500">
+            {isRTL
+              ? "إدارة حسابات موظفي الفروع ومتابعة الفروع المعينين بها وحالة تفعيل الحسابات"
+              : "Manage store staff accounts, assigned branches, and access status"}
+          </p>
+        </div>
+
+        {/* Add User Button */}
+        <button
+          onClick={() => setCreateModalOpen(true)}
+          className="flex items-center justify-center gap-2 px-5 py-3 bg-[#131e48] hover:bg-[#1f2e6b] text-[#73cdca] rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer text-sm"
         >
-          <Users className="text-blue-600" size={28} />
-          {title}
-        </motion.h2>
-        {/* Search Input */}
-        <div className="mt-4 flex justify-center">
-          <div className="relative w-full max-w-xs">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-              <Search size={18} />
-            </span>
+          <UserPlus className="w-5 h-5" />
+          <span>{isRTL ? "إضافة مستخدم فرع جديد" : "Add Store User"}</span>
+        </button>
+      </div>
+
+      {/* Filter Toolbar */}
+      <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col lg:flex-row items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto flex-1">
+          {/* Search Input */}
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3 rtl:left-auto rtl:right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={locale === "ar" ? "ابحث عن موظف..." : "Search for a user..."}
-              className="w-full pl-10 pr-3 py-2 rounded-lg border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm bg-white placeholder-gray-400"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder={isRTL ? "بحث بالاسم، الإيميل، الهاتف..." : "Search by name, email, phone..."}
+              className="w-full h-11 pl-10 rtl:pl-3 rtl:pr-10 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
           </div>
-        </div>
-      </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
-        className="grid grid-cols-1 gap-4"
-      >
-        {filteredStaff.map((s, idx) => (
-          <motion.div
-            key={s.id}
-            initial={{ opacity: 0, y: 30, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.1 * idx, ease: "easeOut" }}
-            whileHover={{ y: -3, scale: 1.005, transition: { duration: 0.2 } }}
-            className="bg-white rounded-2xl shadow-lg hover:shadow-xl border border-gray-100 p-4 relative overflow-hidden cursor-pointer"
-            onClick={() => { setSelectedStaff(s); setModalOpen(true); }}
+          {/* Branch Filter */}
+          <div className="relative w-full sm:w-60">
+            <Store className="absolute left-3 rtl:left-auto rtl:right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <select
+              value={selectedStoreId}
+              onChange={(e) => {
+                setSelectedStoreId(e.target.value)
+                setPage(1)
+              }}
+              className="w-full h-11 pl-9 rtl:pl-3 rtl:pr-9 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+            >
+              <option value="">{isRTL ? "جميع الفروع" : "All Branches"}</option>
+              {stores.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Status Filter */}
+        <div className="flex items-center gap-2 w-full lg:w-auto">
+          <Filter className="w-4 h-4 text-gray-400 mr-1 rtl:mr-0 rtl:ml-1" />
+          <button
+            onClick={() => {
+              setStatusFilter("all")
+              setPage(1)
+            }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
+              statusFilter === "all"
+                ? "bg-gray-900 text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
           >
-            <div className="flex items-start gap-4">
-              <div
-                className="flex items-center justify-center w-12 h-12 rounded-full text-white shrink-0"
-                style={{ background: s.color }}
-              >
-                <User size={22} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-gray-900 font-bold text-lg truncate">{s.name[locale]}</div>
-                <div className="mt-2 grid grid-cols-1 sm:grid-cols-4 gap-2.5">
-                  <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-2.5 py-1.5">
-                    <Store size={14} className="text-cyan-600" />
-                    <div className="text-xs text-gray-700 truncate"><span className="text-gray-500">{branchLabel}:</span> {s.branch[locale]}</div>
-                  </div>
-                  <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-2.5 py-1.5">
-                    <Briefcase size={14} className="text-indigo-600" />
-                    <div className="text-xs text-gray-700 truncate"><span className="text-gray-500">{roleLabel}:</span> {s.role[locale]}</div>
-                  </div>
-                  <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-2.5 py-1.5">
-                    <BadgeDollarSign size={14} className="text-emerald-600" />
-                    <div className="text-xs text-gray-700 truncate"><span className="text-gray-500">{salaryLabel}:</span> {s.salary} <span className="text-[10px] text-gray-500">L.E</span></div>
-                  </div>
-                  <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-2.5 py-1.5">
-                    <ClipboardList size={14} className="text-rose-600" />
-                    <div className="text-xs text-gray-700 truncate"><span className="text-gray-500">{ordersLabel}:</span> {s.ordersHandled}</div>
-                  </div>
-                </div>
+            {isRTL ? "الكل" : "All"} ({totalCount})
+          </button>
+          <button
+            onClick={() => {
+              setStatusFilter("active")
+              setPage(1)
+            }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
+              statusFilter === "active"
+                ? "bg-green-600 text-white"
+                : "bg-green-50 text-green-700 hover:bg-green-100"
+            }`}
+          >
+            {isRTL ? "نشط" : "Active"}
+          </button>
+          <button
+            onClick={() => {
+              setStatusFilter("inactive")
+              setPage(1)
+            }}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
+              statusFilter === "inactive"
+                ? "bg-red-600 text-white"
+                : "bg-red-50 text-red-700 hover:bg-red-100"
+            }`}
+          >
+            {isRTL ? "معطل" : "Inactive"}
+          </button>
+        </div>
+      </div>
+
+      {/* Users Table / Grid */}
+      {loading ? (
+        <div className="flex flex-col items-center justify-center min-h-[300px]">
+          <Loader2 className="w-8 h-8 animate-spin text-teal-600 mb-2" />
+          <p className="text-sm text-gray-500">{isRTL ? "جاري تحميل مستخدمي الفروع..." : "Loading branch users..."}</p>
+        </div>
+      ) : users.length === 0 ? (
+        <div className="bg-white rounded-3xl p-12 text-center border border-gray-100 shadow-sm">
+          <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+          <h3 className="text-lg font-bold text-gray-800 mb-1">
+            {isRTL ? "لا يوجد مستخدمو فروع" : "No branch users found"}
+          </h3>
+          <p className="text-sm text-gray-500 max-w-sm mx-auto mb-4">
+            {isRTL
+              ? "لم يتم العثور على أي موظفين مسجلين يطابقون خيارات البحث الحالية."
+              : "No users match your current filter settings."}
+          </p>
+          <button
+            onClick={() => setCreateModalOpen(true)}
+            className="px-4 py-2 bg-teal-600 text-white rounded-xl text-sm font-semibold hover:bg-teal-700 transition"
+          >
+            {isRTL ? "إضافة مستخدم الآن" : "Add Store User Now"}
+          </button>
+        </div>
+      ) : (
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left rtl:text-right text-gray-600">
+              <thead className="text-xs text-gray-500 bg-gray-50/75 border-b border-gray-100 uppercase">
+                <tr>
+                  <th className="px-6 py-4">{isRTL ? "المستخدم" : "User"}</th>
+                  <th className="px-6 py-4">{isRTL ? "الفرع" : "Store / Branch"}</th>
+                  <th className="px-6 py-4">{isRTL ? "المنطقة" : "Area"}</th>
+                  <th className="px-6 py-4">{isRTL ? "الهاتف" : "Phone"}</th>
+                  <th className="px-6 py-4">{isRTL ? "الحالة" : "Status"}</th>
+                  <th className="px-6 py-4 text-center">{isRTL ? "الإجراءات" : "Actions"}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {users.map((userItem) => (
+                  <tr key={userItem.id} className="hover:bg-gray-50/60 transition-colors">
+                    {/* User info */}
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-pink-50 border border-pink-100 flex items-center justify-center text-pink-600 font-bold text-sm">
+                          {userItem.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900 leading-tight">{userItem.name}</p>
+                          <p className="text-xs text-gray-400 mt-0.5">{userItem.email}</p>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Branch */}
+                    <td className="px-6 py-4">
+                      <span className="font-medium text-gray-800">
+                        {userItem.storeName || (isRTL ? "غير محدد" : "Unassigned")}
+                      </span>
+                    </td>
+
+                    {/* Area */}
+                    <td className="px-6 py-4">
+                      <span className="text-gray-600">{userItem.areaName || (isRTL ? "-" : "-")}</span>
+                    </td>
+
+                    {/* Phone */}
+                    <td className="px-6 py-4">
+                      <span dir="ltr" className="text-gray-600">
+                        {userItem.phone || (isRTL ? "غير متوفر" : "N/A")}
+                      </span>
+                    </td>
+
+                    {/* Status with Toggle */}
+                    <td className="px-6 py-4">
+                      <button
+                        type="button"
+                        disabled={togglingStatusId === userItem.id}
+                        onClick={() => handleToggleStatus(userItem)}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold cursor-pointer transition-colors ${
+                          userItem.isActive
+                            ? "bg-green-50 text-green-700 hover:bg-green-100 border border-green-200"
+                            : "bg-red-50 text-red-700 hover:bg-red-100 border border-red-200"
+                        }`}
+                        title={isRTL ? "انقر للتبديل" : "Click to toggle"}
+                      >
+                        {togglingStatusId === userItem.id ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              userItem.isActive ? "bg-green-500" : "bg-red-500"
+                            }`}
+                          />
+                        )}
+                        <span>{userItem.isActive ? (isRTL ? "نشط" : "Active") : isRTL ? "معطل" : "Inactive"}</span>
+                      </button>
+                    </td>
+
+                    {/* Actions */}
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setEditUser(userItem)}
+                          className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition cursor-pointer"
+                          title={isRTL ? "تعديل" : "Edit"}
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteUserTarget(userItem)}
+                          className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition cursor-pointer"
+                          title={isRTL ? "حذف" : "Delete"}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="p-4 border-t border-gray-100 flex items-center justify-between">
+              <span className="text-xs text-gray-500">
+                {isRTL
+                  ? `صفحة ${page} من ${totalPages} (إجمالي: ${totalCount})`
+                  : `Page ${page} of ${totalPages} (Total: ${totalCount})`}
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className="p-2 rounded-xl border border-gray-200 text-gray-600 disabled:opacity-40 hover:bg-gray-50 transition"
+                >
+                  <ChevronRight className="w-4 h-4 rtl:rotate-180" />
+                </button>
+                <button
+                  type="button"
+                  disabled={page >= totalPages}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  className="p-2 rounded-xl border border-gray-200 text-gray-600 disabled:opacity-40 hover:bg-gray-50 transition"
+                >
+                  <ChevronLeft className="w-4 h-4 rtl:rotate-180" />
+                </button>
               </div>
             </div>
-          </motion.div>
-        ))}
-      </motion.div>
+          )}
+        </div>
+      )}
+
+      {/* Create / Edit Modal */}
+      <UserModal
+        open={createModalOpen || !!editUser}
+        onClose={() => {
+          setCreateModalOpen(false)
+          setEditUser(null)
+        }}
+        userToEdit={editUser}
+        fixedRole="STORE_USER"
+        onSuccess={handleUserSaved}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        open={!!deleteUserTarget}
+        onClose={() => setDeleteUserTarget(null)}
+        onConfirm={handleDeleteConfirm}
+        itemName={deleteUserTarget?.name}
+        loading={deleteLoading}
+      />
     </div>
   )
 }
-
-export default BranchUser2View

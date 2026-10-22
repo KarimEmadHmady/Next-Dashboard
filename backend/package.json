@@ -4,8 +4,13 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node tests/sync-and-errors.test.js && node tests/orders-scoping.test.js && node tests/verify-api.js",
+    "test:sync": "node tests/sync-and-errors.test.js",
+    "test:orders": "node tests/orders-scoping.test.js",
+    "test:api": "node tests/verify-api.js",
     "start": "node server.js",
+
+
     "dev": "nodemon server.js"
   },
   "keywords": [
@@ -20,8 +25,8 @@
   "dependencies": {
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.2",
-    "cloudinary": "^1.41.3",
     "compression": "^1.8.1",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",

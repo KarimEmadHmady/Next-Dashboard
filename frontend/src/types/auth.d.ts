@@ -1,1 +1,1 @@
-// src/types/auth.d.ts 
+export * from './auth';

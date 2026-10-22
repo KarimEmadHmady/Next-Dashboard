@@ -2,9 +2,9 @@
 import { useEffect, useRef } from "react"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
-import { Globe } from "lucide-react"
+import { Globe, MapPin } from "lucide-react"
 
-// إصلاح مشكلة الأيقونات في Leaflet
+// Fix Leaflet icon issue
 delete (L.Icon.Default.prototype as any)._getIconUrl
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
@@ -12,265 +12,187 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 })
 
-type Area = {
-  id: number
-  name: { en: string; ar: string }
-  location: { en: string; ar: string }
-  coordinates: { lat: number; lng: number }
-  manager: { en: string; ar: string }
+export type MapArea = {
+  id: string
+  name: string
+  lat: number
+  lng: number
+  managerName?: string | null
   color: string
   storesCount: number
-  usersCount: number
-  performance: number
-  population: string
-  area: string
 }
 
 type Locale = "ar" | "en"
 
 interface MapComponentProps {
-  areas: Area[]
+  areas: MapArea[]
   locale: Locale
 }
 
 const MapComponent = ({ areas, locale }: MapComponentProps) => {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<L.Map | null>(null)
+  const markersLayerRef = useRef<L.LayerGroup | null>(null)
 
   useEffect(() => {
-    if (!mapRef.current || mapInstanceRef.current) return
+    if (!mapRef.current) return
 
-    // إنشاء الخريطة مع التركيز على القاهرة
-    const map = L.map(mapRef.current, {
-      center: [30.0444, 31.2357], // إحداثيات القاهرة
-      zoom: 11,
-      zoomControl: true,
-      attributionControl: true,
-    })
+    // Initialize Map if not already created
+    if (!mapInstanceRef.current) {
+      const map = L.map(mapRef.current, {
+        center: [30.0444, 31.2357], // Cairo center
+        zoom: 11,
+        zoomControl: true,
+        attributionControl: true,
+      })
 
-    // إضافة طبقة الخريطة الأساسية (OpenStreetMap)
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 19,
-    }).addTo(map)
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19,
+      }).addTo(map)
 
-    // إضافة طبقة خريطة إضافية (Satellite)
-    const satelliteLayer = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
-      attribution: '© <a href="https://www.esri.com/">Esri</a>',
-      maxZoom: 19,
-    })
-
-    // إضافة طبقة خريطة الطرق
-    const roadsLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      maxZoom: 19,
-    })
-
-    // إضافة أزرار تبديل الطبقات
-    const baseMaps = {
-      [locale === "ar" ? "الخريطة الأساسية" : "Basic Map"]: roadsLayer,
-      [locale === "ar" ? "صور الأقمار الصناعية" : "Satellite"]: satelliteLayer,
+      markersLayerRef.current = L.layerGroup().addTo(map)
+      mapInstanceRef.current = map
     }
 
-    L.control.layers(baseMaps).addTo(map)
+    const map = mapInstanceRef.current
+    const markersLayer = markersLayerRef.current
 
-    // إضافة المناطق كعلامات على الخريطة
+    if (markersLayer) {
+      markersLayer.clearLayers()
+    }
+
+    const validMarkers: L.Marker[] = []
+
     areas.forEach((area) => {
-      // إنشاء أيقونة مخصصة لكل منطقة
+      if (typeof area.lat !== "number" || typeof area.lng !== "number" || isNaN(area.lat) || isNaN(area.lng)) {
+        return
+      }
+
       const customIcon = L.divIcon({
         className: "custom-area-marker",
         html: `
           <div style="
-            width: 24px;
-            height: 24px;
+            width: 32px;
+            height: 32px;
             background-color: ${area.color};
             border: 3px solid white;
             border-radius: 50%;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            position: relative;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 11px;
+            font-family: inherit;
           ">
-            <div style="
-              position: absolute;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%, -50%);
-              width: 8px;
-              height: 8px;
-              background-color: white;
-              border-radius: 50%;
-            "></div>
+            ${area.storesCount}
           </div>
         `,
-        iconSize: [24, 24],
-        iconAnchor: [12, 12],
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
       })
 
-      // إنشاء العلامة
-      const marker = L.marker([area.coordinates.lat, area.coordinates.lng], {
-        icon: customIcon,
-      }).addTo(map)
+      const marker = L.marker([area.lat, area.lng], { icon: customIcon })
 
-      // إنشاء محتوى النافذة المنبثقة
       const popupContent = `
-        <div style="min-width: 200px; font-family: inherit;">
+        <div style="min-width: 220px; font-family: Cairo, sans-serif; text-align: ${locale === "ar" ? "right" : "left"}; direction: ${locale === "ar" ? "rtl" : "ltr"}; padding: 2px;">
           <div style="
             background-color: ${area.color};
             color: white;
             padding: 8px 12px;
-            margin: -12px -16px 12px -16px;
+            margin: -14px -14px 10px -14px;
             border-radius: 8px 8px 0 0;
             font-weight: bold;
             text-align: center;
+            font-size: 14px;
           ">
-            ${area.name[locale]}
+            ${area.name}
           </div>
-          <div style="margin-bottom: 8px;">
-            <strong>${locale === "ar" ? "الموقع:" : "Location:"}</strong> ${area.location[locale]}
+          <div style="margin-bottom: 6px; font-size: 13px;">
+            <strong>${locale === "ar" ? "المدير:" : "Manager:"}</strong> 
+            <span>${area.managerName || (locale === "ar" ? "غير محدد" : "Unassigned")}</span>
           </div>
-          <div style="margin-bottom: 8px;">
-            <strong>${locale === "ar" ? "المدير:" : "Manager:"}</strong> ${area.manager[locale]}
+          <div style="margin-bottom: 6px; font-size: 13px;">
+            <strong>${locale === "ar" ? "عدد الفروع:" : "Stores:"}</strong> 
+            <span style="font-weight: bold; color: ${area.color};">${area.storesCount}</span>
           </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-            <div style="text-align: center; padding: 4px; background-color: #f3f4f6; border-radius: 4px;">
-              <div style="font-weight: bold; color: ${area.color};">${area.storesCount}</div>
-              <div style="font-size: 12px; color: #6b7280;">${locale === "ar" ? "متجر" : "Stores"}</div>
-            </div>
-            <div style="text-align: center; padding: 4px; background-color: #f3f4f6; border-radius: 4px;">
-              <div style="font-weight: bold; color: ${area.color};">${area.usersCount}</div>
-              <div style="font-size: 12px; color: #6b7280;">${locale === "ar" ? "مستخدم" : "Users"}</div>
-            </div>
-          </div>
-          <div style="margin-bottom: 8px;">
-            <strong>${locale === "ar" ? "الأداء:" : "Performance:"}</strong> ${area.performance}%
-          </div>
-          <div style="width: 100%; height: 6px; background-color: #e5e7eb; border-radius: 3px; overflow: hidden;">
-            <div style="
-              width: ${area.performance}%;
-              height: 100%;
-              background-color: ${area.color};
-              border-radius: 3px;
-            "></div>
+          <div style="margin-top: 8px; padding-top: 6px; border-top: 1px solid #e5e7eb; font-size: 11px; color: #6b7280; font-family: monospace;">
+            GPS: ${area.lat.toFixed(4)}, ${area.lng.toFixed(4)}
           </div>
         </div>
       `
 
-      marker.bindPopup(popupContent, {
-        maxWidth: 300,
-        className: "area-popup",
-      })
-
-      // إضافة تأثيرات تفاعلية مع أنواع صحيحة
-      marker.on("mouseover", function (this: L.Marker) {
-        this.setZIndexOffset(1000)
-      })
-
-      marker.on("mouseout", function (this: L.Marker) {
-        this.setZIndexOffset(0)
-      })
+      marker.bindPopup(popupContent, { maxWidth: 300 })
+      if (markersLayer) {
+        marker.addTo(markersLayer)
+      }
+      validMarkers.push(marker)
     })
 
-    // إضافة حدود مصر مع أنواع صحيحة
-    const egyptBounds: L.LatLngBoundsExpression = [
-      [22.0, 25.0], // جنوب غرب
-      [31.7, 36.9], // شمال شرق
-    ]
+    if (validMarkers.length > 0 && map) {
+      const group = L.featureGroup(validMarkers)
+      map.fitBounds(group.getBounds().pad(0.25))
+    }
+  }, [areas, locale])
 
-    // إضافة مستطيل حدود مصر
-    // L.rectangle(egyptBounds, {
-    //   color: "#f59e0b",
-    //   weight: 2,
-    //   fillColor: "#fef3c7",
-    //   fillOpacity: 0.1,
-    // }).addTo(map)
-
-    // إضافة نهر النيل مع أنواع صحيحة
-    // (تم حذف الكود نهائياً)
-
-    // إضافة بحر المتوسط مع أنواع صحيحة
-    const mediterraneanSea: L.LatLngExpression[] = [
-      [31.0, 30.0],
-      [31.0, 32.0],
-      [32.0, 32.0],
-      [32.0, 30.0],
-    ]
-
-    L.polygon(mediterraneanSea, {
-      color: "#0ea5e9",
-      weight: 1,
-      fillColor: "#0ea5e9",
-      fillOpacity: 0.3,
-    }).addTo(map)
-
-    // إضافة البحر الأحمر مع أنواع صحيحة
-    const redSea: L.LatLngExpression[] = [
-      [22.0, 35.0],
-      [22.0, 37.0],
-      [24.0, 37.0],
-      [24.0, 35.0],
-    ]
-
-    L.polygon(redSea, {
-      color: "#dc2626",
-      weight: 1,
-      fillColor: "#dc2626",
-      fillOpacity: 0.3,
-    }).addTo(map)
-
-    // حفظ مرجع الخريطة
-    mapInstanceRef.current = map
-
-    // تنظيف عند إلغاء المكون
+  useEffect(() => {
     return () => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove()
         mapInstanceRef.current = null
       }
     }
-  }, [areas, locale])
+  }, [])
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 to-gray-100 rounded-2xl p-6 border border-gray-200 shadow-lg ">
-      <div className="flex items-center gap-2 mb-6">
-        <Globe className="text-blue-600" size={24} />
-        <h3 className="text-xl font-bold text-gray-900">
-          {locale === "ar" ? "خريطة المناطق" : "Areas Map"}
-        </h3>
+    <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-md">
+      <div className="flex items-center justify-between gap-2 mb-4">
+        <div className="flex items-center gap-2">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+            <Globe size={22} />
+          </div>
+          <div>
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900">
+              {locale === "ar" ? "خريطة توزيع المناطق والفروع" : "Areas Distribution Map"}
+            </h3>
+            <p className="text-xs text-gray-500">
+              {locale === "ar" ? "مواقع حقيقية مستمدة من قواعد البيانات" : "Live coordinates retrieved from backend"}
+            </p>
+          </div>
+        </div>
+
+        <span className="text-xs bg-gray-100 text-gray-700 font-bold px-3 py-1 rounded-full">
+          {areas.length} {locale === "ar" ? "مناطق" : "Areas"}
+        </span>
       </div>
-      
-      {/* الخريطة الحقيقية */}
-      <div className="relative h-80 bg-white rounded-xl overflow-hidden border-2 border-gray-300 shadow-inner">
+
+      {/* Map Canvas */}
+      <div className="relative h-80 sm:h-96 bg-gray-50 rounded-2xl overflow-hidden border border-gray-200 shadow-inner">
         <div ref={mapRef} className="w-full h-full" />
       </div>
-      
-      {/* مفتاح الخريطة */}
-      <div className="mt-6 grid grid-cols-3 gap-4">
+
+      {/* Map Legend */}
+      <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
         {areas.map((area) => (
-          <div key={area.id} className="flex items-center gap-3 bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full border-2 border-white shadow-sm" style={{ backgroundColor: area.color }}></div>
-              <div className="text-sm font-medium text-gray-700">{area.location[locale]}</div>
+          <div
+            key={area.id}
+            className="flex items-center justify-between bg-gray-50 p-3 rounded-xl border border-gray-100"
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div
+                className="w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm shrink-0"
+                style={{ backgroundColor: area.color }}
+              />
+              <div className="text-sm font-bold text-gray-800 truncate">{area.name}</div>
             </div>
-            <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-              {area.storesCount} {locale === "ar" ? "متجر" : "stores"}
+            <div className="text-xs font-semibold text-gray-600 bg-white px-2 py-0.5 rounded-md border border-gray-200 shrink-0">
+              {area.storesCount} {locale === "ar" ? "فرع" : "stores"}
             </div>
           </div>
         ))}
       </div>
-      
-      {/* إحصائيات إضافية */}
-      {/* <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-        <div className="text-sm text-blue-800 text-center">
-          <span className="font-semibold">
-            {locale === "ar" ? "إجمالي المساحة:" : "Total Area:"}
-          </span>{" "}
-          <span className="text-blue-600">37.5 km²</span>
-          {" • "}
-          <span className="font-semibold">
-            {locale === "ar" ? "إجمالي السكان:" : "Total Population:"}
-          </span>{" "}
-          <span className="text-blue-600">299K</span>
-        </div>
-      </div> */}
     </div>
   )
 }

@@ -1,0 +1,797 @@
+{
+  "info": {
+    "name": "Roxy Store Dashboard API - Complete Collection",
+    "description": "Complete REST API collection for Roxy Store Dashboard.\nIncludes Auth, Token Management, User Management, Areas & Stores (External WordPress Sync Mirror), and Orders Scoping (Fail-Closed).\n\nFeatures auto-token saving scripts on Login so you do not have to copy-paste tokens manually.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "areaId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "storeId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "orderId",
+      "value": "101",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Auth",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health",
+            "description": "Public health check endpoint."
+          }
+        },
+        {
+          "name": "Login - Super Admin (Operation Manager)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success && res.data && res.data.accessToken) {",
+                  "    pm.collectionVariables.set('accessToken', res.data.accessToken);",
+                  "    console.log('Access token saved to collection variable accessToken');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/login",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@roxy.com\",\n  \"password\": \"Admin@Password123\"\n}"
+            },
+            "description": "Logs in as Super Admin (OPERATION_MANAGER) and auto-saves accessToken to collection variables."
+          }
+        },
+        {
+          "name": "Login - Area Manager",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success && res.data && res.data.accessToken) {",
+                  "    pm.collectionVariables.set('accessToken', res.data.accessToken);",
+                  "    console.log('Access token saved for Area Manager');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/login",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ahmed.area@roxy.com\",\n  \"password\": \"Password@123\"\n}"
+            },
+            "description": "Login as created Area Manager."
+          }
+        },
+        {
+          "name": "Login - Store Manager",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success && res.data && res.data.accessToken) {",
+                  "    pm.collectionVariables.set('accessToken', res.data.accessToken);",
+                  "    console.log('Access token saved for Store Manager');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/login",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"mohamed.sm@roxy.com\",\n  \"password\": \"Password@123\"\n}"
+            },
+            "description": "Login as created Store Manager."
+          }
+        },
+        {
+          "name": "Login - Store User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success && res.data && res.data.accessToken) {",
+                  "    pm.collectionVariables.set('accessToken', res.data.accessToken);",
+                  "    console.log('Access token saved for Store User');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/login",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sayed.user@roxy.com\",\n  \"password\": \"Password@123\"\n}"
+            },
+            "description": "Login as created Store User."
+          }
+        },
+        {
+          "name": "Get Profile (/auth/me)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/auth/me",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Returns current user profile, including assigned area ({ id, name, externalId }), store ({ id, name, externalId }), allowedPages, and permissions."
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success && res.data && res.data.accessToken) {",
+                  "    pm.collectionVariables.set('accessToken', res.data.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/refresh",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "description": "Refreshes access token (via cookie or request body)."
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/change-password",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"Admin@Password123\",\n  \"newPassword\": \"Admin@Password456\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/logout",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Logout All Devices",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/logout-all",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Sync",
+      "item": [
+        {
+          "name": "Sync Areas & Stores (Operation Manager Only)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/sync/areas-stores",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Triggers manual sync from external WordPress API (https://backend.roxy-shawerma.com).\n- Restricted to OPERATION_MANAGER.\n- Rate limited: 5 requests / hour.\n- Upserts areas and stores by external_id.\n- Audited in audit_logs table."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Areas",
+      "item": [
+        {
+          "name": "List Areas (Scoped)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success && res.data && res.data.length > 0) {",
+                  "    pm.collectionVariables.set('areaId', res.data[0].id);",
+                  "    console.log('Auto-saved areaId:', res.data[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/areas",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Returns list of areas from the local sync mirror (with externalId, slug, lat, lng, storeCount). Automatically saves first areaId to collection variables."
+          }
+        },
+        {
+          "name": "Get Area By ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/areas/{{areaId}}",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Get Stores in Area",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/areas/{{areaId}}/stores",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Returns all stores located in the specified area."
+          }
+        },
+        {
+          "name": "Create Area [Disabled - Returns 405]",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/areas",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alexandria\"\n}"
+            },
+            "description": "Returns 405 METHOD_NOT_ALLOWED because external WordPress is the source of truth."
+          }
+        },
+        {
+          "name": "Update Area [Disabled - Returns 405]",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/areas/{{areaId}}",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Area Name\"\n}"
+            },
+            "description": "Returns 405 METHOD_NOT_ALLOWED."
+          }
+        },
+        {
+          "name": "Delete Area [Disabled - Returns 405]",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/areas/{{areaId}}",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Returns 405 METHOD_NOT_ALLOWED."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Stores",
+      "item": [
+        {
+          "name": "List Stores (Scoped)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success && res.data && res.data.length > 0) {",
+                  "    pm.collectionVariables.set('storeId', res.data[0].id);",
+                  "    console.log('Auto-saved storeId:', res.data[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/stores",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Returns stores scoped to caller role with externalId, areaExternalId, coordinates, and manager info. Auto-saves first storeId."
+          }
+        },
+        {
+          "name": "Get Store By ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/stores/{{storeId}}",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Filter Stores By Area",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/stores?areaId={{areaId}}",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Create Store [Disabled - Returns 405]",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/stores",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Downtown Branch\",\n  \"areaId\": \"{{areaId}}\"\n}"
+            },
+            "description": "Returns 405 METHOD_NOT_ALLOWED."
+          }
+        },
+        {
+          "name": "Update Store [Disabled - Returns 405]",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/stores/{{storeId}}",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Store Name\"\n}"
+            },
+            "description": "Returns 405 METHOD_NOT_ALLOWED."
+          }
+        },
+        {
+          "name": "Delete Store [Disabled - Returns 405]",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/stores/{{storeId}}",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Returns 405 METHOD_NOT_ALLOWED."
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Users",
+      "item": [
+        {
+          "name": "Create Area Manager (by Op Manager)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success && res.data && res.data.id) {",
+                  "    pm.collectionVariables.set('userId', res.data.id);",
+                  "    console.log('Saved userId:', res.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/users",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ahmed Area Manager\",\n  \"email\": \"ahmed.area@roxy.com\",\n  \"phone\": \"01011112222\",\n  \"password\": \"Password@123\",\n  \"role\": \"AREA_MANAGER\",\n  \"areaId\": \"{{areaId}}\"\n}"
+            },
+            "description": "Creates an AREA_MANAGER assigned to an active mirrored area."
+          }
+        },
+        {
+          "name": "Create Store Manager (by Area Manager)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/users",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mohamed Store Manager\",\n  \"email\": \"mohamed.sm@roxy.com\",\n  \"phone\": \"01033334444\",\n  \"password\": \"Password@123\",\n  \"role\": \"STORE_MANAGER\",\n  \"storeId\": \"{{storeId}}\"\n}"
+            },
+            "description": "Creates a STORE_MANAGER assigned to an active mirrored store."
+          }
+        },
+        {
+          "name": "Create Store User (by Store Manager)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/users",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sayed Store User\",\n  \"email\": \"sayed.user@roxy.com\",\n  \"phone\": \"01055556666\",\n  \"password\": \"Password@123\",\n  \"role\": \"STORE_USER\",\n  \"storeId\": \"{{storeId}}\"\n}"
+            },
+            "description": "Creates a STORE_USER assigned to caller's branch."
+          }
+        },
+        {
+          "name": "List Users (Scoped)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/users?page=1&limit=20",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "List users automatically scoped to caller role."
+          }
+        },
+        {
+          "name": "Get User By ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/users/{{userId}}",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/users/{{userId}}",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ahmed Area Manager Updated\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Toggle User Status (Activate/Deactivate)",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/users/{{userId}}/status",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": false\n}"
+            }
+          }
+        },
+        {
+          "name": "Soft Delete User",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/users/{{userId}}",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Orders (Scoped & Fail-Closed)",
+      "item": [
+        {
+          "name": "List Orders (Scoped)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/orders?page=1&limit=20",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Lists orders with strict role-based branch scoping (Fail-Closed).\n- OPERATION_MANAGER: sees all.\n- AREA_MANAGER: sees only branches in his area.\n- STORE_MANAGER / STORE_USER: sees only his branch.\n- STORE_USER has customer PII masked (email, phone, address).\n- Unmapped orders are hidden from scoped roles."
+          }
+        },
+        {
+          "name": "List Orders Filtered by Status",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/orders?status=completed&page=1&limit=20",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Filter orders by normalized status (pending, processing, on-hold, completed, cancelled, refunded, failed)."
+          }
+        },
+        {
+          "name": "Search Orders",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/orders?search=101",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Search orders by order number or customer."
+          }
+        },
+        {
+          "name": "Get Order Statuses",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/orders/statuses",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Returns list of normalized order statuses with 'wc-' prefix stripped."
+          }
+        },
+        {
+          "name": "Get Single Order By ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/orders/{{orderId}}",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Fetches single order by ID with fail-closed scoping (returns 404 if out-of-scope or unmapped)."
+          }
+        },
+        {
+          "name": "Get Order Timeline",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/orders/{{orderId}}/timeline",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "description": "Fetches order timeline. Enforces scoping (returns 404 if out-of-scope)."
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useParams } from "next/navigation";
 import Sidebar from "@/components/common/Sidebar";
+import AuthGuard from "@/components/common/AuthGuard";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const params = useParams();
@@ -11,15 +12,17 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-white">
-      <Sidebar isSidebarOpen={isSidebarOpen} setSidebarOpen={setSidebarOpen} />
-      
-      {/* Main Content */}
-      <main className={`flex-1 bg-gray-50 ${locale === 'ar' ? 'sm:mr-64' : 'sm:ml-64'} ${locale === 'ar' ? 'pr-20 sm:pr-0' : 'pl-20 sm:pl-0'}`}>
-        {children}
-      </main>
-    </div>
+    <AuthGuard>
+      <div className="flex min-h-screen bg-white">
+        <Sidebar isSidebarOpen={isSidebarOpen} setSidebarOpen={setSidebarOpen} />
+        
+        {/* Main Content */}
+        <main className={`flex-1 bg-gray-50 ${locale === 'ar' ? 'sm:mr-64' : 'sm:ml-64'} ${locale === 'ar' ? 'pr-20 sm:pr-0' : 'pl-20 sm:pl-0'}`}>
+          {children}
+        </main>
+      </div>
+    </AuthGuard>
   );
 };
 
-export default DashboardLayout; 
+export default DashboardLayout;

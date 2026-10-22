@@ -1,8 +1,5 @@
-export const notFound = (req, res, next) => {
-  res.status(404).json({
-    success: false,
-    message: `Route not found: ${req.originalUrl}`,
-  });
-}
+import { sendError } from '../utils/response.util.js';
 
-// app.js
+export const notFound = (req, res) => {
+  return sendError(res, 404, 'NOT_FOUND', `Route ${req.method} ${req.originalUrl} not found`);
+};

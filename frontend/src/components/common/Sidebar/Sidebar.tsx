@@ -1,5 +1,3 @@
-
-
 "use client"
 import type React from "react"
 import { useState, useEffect } from "react"
@@ -8,7 +6,19 @@ import { usePathname, useRouter } from "next/navigation"
 import { useParams } from "next/navigation"
 import en from "@/messages/en.json"
 import ar from "@/messages/ar.json"
-import { FiHome, FiMapPin, FiLayers, FiShoppingCart, FiLogOut, FiUsers, FiUserCheck, FiAlertCircle } from "react-icons/fi"
+import {
+  FiHome,
+  FiMapPin,
+  FiLayers,
+  FiShoppingCart,
+  FiLogOut,
+  FiUsers,
+  FiUserCheck,
+  FiAlertCircle,
+} from "react-icons/fi"
+import { useAppDispatch, useAppSelector } from "@/redux/hooks"
+import { selectAllowedPages, selectCurrentUser } from "@/redux/features/auth/authSelectors"
+import { logoutUser } from "@/redux/features/auth/authSlice"
 
 const translations: Record<string, any> = { en, ar }
 
@@ -21,6 +31,13 @@ function useI18n() {
   const locale: string =
     typeof params?.locale === "string" ? params.locale : Array.isArray(params?.locale) ? params?.locale[0] : "en"
   return (key: string) => getTranslation(translations[locale], key)
+}
+
+const roleNames: Record<string, { en: string; ar: string }> = {
+  OPERATION_MANAGER: { en: "Operation Manager", ar: "مدير العمليات" },
+  AREA_MANAGER: { en: "Area Manager", ar: "مدير المنطقة" },
+  STORE_MANAGER: { en: "Store Manager", ar: "مدير الفرع" },
+  STORE_USER: { en: "Store User", ar: "مستخدم الفرع" },
 }
 
 const sidebarLinks = [
@@ -73,33 +90,50 @@ const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, setSidebarOpen }) => {
   const params = useParams()
   const router = useRouter()
   const pathname = usePathname()
+  const dispatch = useAppDispatch()
+
   const locale: string =
     typeof params?.locale === "string" ? params.locale : Array.isArray(params?.locale) ? params?.locale[0] : "en"
 
-  const [sidebarVisible, setSidebarVisible] = useState(false)
-  const [userProfile, setUserProfile] = useState<{ name: string; avatarUrl?: string } | null>(null)
+  const reduxUser = useAppSelector(selectCurrentUser)
+  const allowedPages = useAppSelector(selectAllowedPages)
 
+  const [sidebarVisible, setSidebarVisible] = useState(false)
+  const [userProfile, setUserProfile] = useState<{ name: string; role?: string; avatarUrl?: string } | null>(null)
+
+  // Sync user profile from Redux or local storage
   useEffect(() => {
+    if (reduxUser) {
+      setUserProfile({
+        name: reduxUser.name,
+        role: reduxUser.role,
+        avatarUrl: reduxUser.avatarUrl || "/avatar.webp",
+      })
+      return
+    }
+
     try {
       const raw = typeof window !== "undefined" ? window.localStorage.getItem("user") : null
       if (raw) {
         const parsed = JSON.parse(raw)
         if (parsed && typeof parsed === "object") {
-          setUserProfile({ name: parsed.name ?? "User", avatarUrl: parsed.avatarUrl ?? parsed.avatar })
+          setUserProfile({
+            name: parsed.name ?? "User",
+            role: parsed.role,
+            avatarUrl: parsed.avatarUrl ?? parsed.avatar,
+          })
         }
       }
-    } catch (err) {
+    } catch {
       // ignore malformed localStorage
     }
-  }, [])
+  }, [reduxUser])
 
-  const getInitials = (fullName?: string) => {
-    if (!fullName) return "U"
-    const parts = String(fullName).trim().split(/\s+/)
-    const first = parts[0]?.[0] ?? ""
-    const last = parts[parts.length - 1]?.[0] ?? ""
-    return (first + last).toUpperCase() || "U"
-  }
+  // Filter links based on role's allowedPages
+  const visibleLinks = sidebarLinks.filter((link) => {
+    if (!allowedPages || allowedPages.length === 0) return true
+    return allowedPages.includes(link.href)
+  })
 
   useEffect(() => {
     if (isSidebarOpen) {
@@ -122,16 +156,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, setSidebarOpen }) => {
     }
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     try {
-      if (typeof window !== "undefined") {
-        window.localStorage.removeItem("user")
-      }
-    } catch (_) {
-      // ignore storage issues
+      await dispatch(logoutUser()).unwrap()
+    } catch {
+      // ignore errors
+    } finally {
+      router.push(`/${locale}`)
     }
-    router.push(`/${locale}`)
   }
+
+  const currentRoleTitle =
+    userProfile?.role && roleNames[userProfile.role]
+      ? roleNames[userProfile.role][locale as "ar" | "en"] || userProfile.role
+      : ""
 
   return (
     <>
@@ -157,7 +195,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, setSidebarOpen }) => {
         style={{ height: "calc(100vh - 120px)", width: "64px" }}
       >
         <div className="flex flex-col justify-start items-center w-full gap-3">
-          {sidebarLinks.map((link) => (
+          {visibleLinks.map((link) => (
             <Link
               key={link.href}
               href={`/${locale}/dashboard/${link.href}`}
@@ -183,7 +221,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, setSidebarOpen }) => {
           >
             <img src="/flags/sa.svg" alt="Arabic" className="w-5 h-5 rounded-sm" />
           </button>
-          <button onClick={handleLogout} className="flex items-center justify-center bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white w-10 h-10 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg">
+          <button
+            onClick={handleLogout}
+            className="flex items-center justify-center bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white w-10 h-10 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg"
+          >
             <FiLogOut className="w-4 h-4" />
           </button>
         </div>
@@ -208,7 +249,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, setSidebarOpen }) => {
             <div className="absolute inset-0 bg-white/40" />
             <div className="relative flex flex-col items-center gap-2">
               {userProfile ? (
-                <Link href={`/${locale}/dashboard/profile`} className="flex flex-col items-center gap-2 group cursor-pointer relative">
+                <Link
+                  href={`/${locale}/dashboard/profile`}
+                  className="flex flex-col items-center gap-2 group cursor-pointer relative"
+                >
                   <div className="relative">
                     <img
                       src={userProfile.avatarUrl || "/avatar.webp"}
@@ -218,13 +262,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, setSidebarOpen }) => {
                     <span className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full shadow-md"></span>
                   </div>
                   <div className="text-center">
-                    <p className="text-sm font-medium text-gray-900 leading-none group-hover:text-secondary transition">{userProfile.name}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {(() => {
-                        const matched = sidebarLinks.find((l) => pathname.includes(`/dashboard/${l.href}`))
-                        return matched ? t(matched.labelKey) : ""
-                      })()}
+                    <p className="text-sm font-semibold text-gray-900 leading-none group-hover:text-teal-600 transition">
+                      {userProfile.name}
                     </p>
+                    {currentRoleTitle && (
+                      <span className="inline-block mt-1 px-2 py-0.5 text-[11px] font-medium text-teal-800 bg-teal-50 rounded-full border border-teal-200">
+                        {currentRoleTitle}
+                      </span>
+                    )}
                   </div>
                 </Link>
               ) : (
@@ -233,60 +278,63 @@ const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, setSidebarOpen }) => {
                     <img src="/logo.png" alt="Logo" className="w-16 h-16 object-contain drop-shadow-sm" />
                     <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
                   </div>
-                  <div className="text-center">
-                    <h2 className="text-base font-semibold text-gray-800">
-                      {(() => {
-                        const matched = sidebarLinks.find((l) => pathname.includes(`/dashboard/${l.href}`))
-                        return matched ? t(matched.labelKey) : ""
-                      })()}
-                    </h2>
-                  </div>
                 </div>
               )}
             </div>
           </div>
 
           {/* Navigation Links */}
-          <div className="flex-1 px-4 py-5 overflow-y-auto ">
+          <div className="flex-1 px-4 py-5 overflow-y-auto">
             <ul className="space-y-3">
-              {sidebarLinks.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={`/${locale}/dashboard/${link.href}`}
-                    className="flex items-center p-1 text-base font-medium text-gray-700 rounded-xl hover:bg-teal-100 hover:text-gray-900 group transition-all duration-200 hover:shadow-md hover:scale-[1.02] border border-transparent hover:border-teal-100"
-                  >
-                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-50 group-hover:bg-white group-hover:shadow-sm transition-all duration-200 mr-4">
-                      {link.icon}
-                    </div>
-                    <span className="font-medium">{t(link.labelKey)}</span>
-                  </Link>
-                </li>
-              ))}
+              {visibleLinks.map((link) => {
+                const isActive = pathname.includes(`/dashboard/${link.href}`)
+                return (
+                  <li key={link.href}>
+                    <Link
+                      href={`/${locale}/dashboard/${link.href}`}
+                      className={`flex items-center p-2 text-sm font-medium rounded-xl transition-all duration-200 ${
+                        isActive
+                          ? "bg-teal-50 text-teal-900 border border-teal-200 shadow-sm"
+                          : "text-gray-700 hover:bg-teal-50/50 hover:text-gray-900 hover:scale-[1.02]"
+                      }`}
+                    >
+                      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gray-50 group-hover:bg-white mr-3 rtl:mr-0 rtl:ml-3">
+                        {link.icon}
+                      </div>
+                      <span className="font-medium">{t(link.labelKey)}</span>
+                    </Link>
+                  </li>
+                )
+              })}
             </ul>
             {/* Logo under links */}
-            <div className="flex items-center justify-center mt-[-20px] py-6">
-              <img src="/logo.png" alt="Logo" className="w-50 h-auto opacity-30" />
+            <div className="flex items-center justify-center mt-[-10px] py-6">
+              <img src="/logo.png" alt="Logo" className="w-40 h-auto opacity-30" />
             </div>
           </div>
 
           {/* Footer */}
           <div className="border-t border-gray-100 bg-gray-50/50 p-4">
-            <div className="flex items-center justify-center gap-2 mb-4">
+            <div className="flex items-center justify-center gap-2 mb-2">
               <button
                 onClick={() => handleLangSwitch("en")}
-                className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 hover:scale-105 ${locale === "en" ? "bg-blue-500 shadow-lg" : "bg-white hover:bg-gray-100 shadow-sm border border-gray-200"}`}
+                className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 hover:scale-105 ${locale === "en" ? "bg-blue-500 shadow-lg text-white" : "bg-white hover:bg-gray-100 shadow-sm border border-gray-200"}`}
                 aria-label="English"
               >
                 <img src="/flags/gb.svg" alt="English" className="w-5 h-5 rounded-sm" />
               </button>
               <button
                 onClick={() => handleLangSwitch("ar")}
-                className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 hover:scale-105 ${locale === "ar" ? "bg-blue-500 shadow-lg" : "bg-white hover:bg-gray-100 shadow-sm border border-gray-200"}`}
+                className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 hover:scale-105 ${locale === "ar" ? "bg-blue-500 shadow-lg text-white" : "bg-white hover:bg-gray-100 shadow-sm border border-gray-200"}`}
                 aria-label="Arabic"
               >
                 <img src="/flags/sa.svg" alt="Arabic" className="w-5 h-5 rounded-sm" />
               </button>
-              <button onClick={handleLogout} className="flex items-center justify-center bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white w-10 h-10 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg">
+              <button
+                onClick={handleLogout}
+                className="flex items-center justify-center bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white w-10 h-10 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg"
+                title={locale === "ar" ? "تسجيل الخروج" : "Logout"}
+              >
                 <FiLogOut className="w-4 h-4" />
               </button>
             </div>
@@ -336,30 +384,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, setSidebarOpen }) => {
                         className="w-16 h-16 rounded-full object-cover shadow-sm border border-white"
                       />
                       <div className="text-center">
-                        <p className="text-sm font-medium text-gray-900 leading-none">{userProfile.name}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          {(() => {
-                            const matched = sidebarLinks.find((l) => pathname.includes(`/dashboard/${l.href}`))
-                            return matched ? t(matched.labelKey) : ""
-                          })()}
-                        </p>
+                        <p className="text-sm font-semibold text-gray-900 leading-none">{userProfile.name}</p>
+                        {currentRoleTitle && (
+                          <span className="inline-block mt-1 px-2 py-0.5 text-[11px] font-medium text-teal-800 bg-teal-50 rounded-full border border-teal-200">
+                            {currentRoleTitle}
+                          </span>
+                        )}
                       </div>
                     </>
                   ) : (
-                    <>
-                      <div className="relative">
-                        <img src="/logo.png" alt="Logo" className="w-16 h-16 object-contain drop-shadow-sm" />
-                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-sm"></div>
-                      </div>
-                      <div className="text-center">
-                        <h2 className="text-base font-semibold text-gray-800">
-                          {(() => {
-                            const matched = sidebarLinks.find((l) => pathname.includes(`/dashboard/${l.href}`))
-                            return matched ? t(matched.labelKey) : ""
-                          })()}
-                        </h2>
-                      </div>
-                    </>
+                    <div className="relative">
+                      <img src="/logo.png" alt="Logo" className="w-16 h-16 object-contain drop-shadow-sm" />
+                    </div>
                   )}
                 </div>
               </div>
@@ -367,45 +403,52 @@ const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, setSidebarOpen }) => {
               {/* Navigation */}
               <div className="flex-1 px-4 py-6 overflow-y-auto">
                 <ul className="space-y-3">
-                  {sidebarLinks.map((link) => (
-                    <li key={link.href}>
-                      <Link
-                        href={`/${locale}/dashboard/${link.href}`}
-                        className="flex items-center p-4 text-base font-medium text-gray-700 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:text-gray-900 group transition-all duration-200 hover:shadow-md border border-transparent hover:border-teal-100"
-                        onClick={() => setSidebarOpen(false)}
-                      >
-                        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-50 group-hover:bg-white group-hover:shadow-sm transition-all duration-200 mr-4">
-                          {link.icon}
-                        </div>
-                        <span className="font-medium">{t(link.labelKey)}</span>
-                      </Link>
-                    </li>
-                  ))}
+                  {visibleLinks.map((link) => {
+                    const isActive = pathname.includes(`/dashboard/${link.href}`)
+                    return (
+                      <li key={link.href}>
+                        <Link
+                          href={`/${locale}/dashboard/${link.href}`}
+                          className={`flex items-center p-3 text-base font-medium rounded-xl transition-all duration-200 ${
+                            isActive
+                              ? "bg-teal-50 text-teal-900 border border-teal-200 shadow-sm"
+                              : "text-gray-700 hover:bg-teal-50/50 hover:text-gray-900"
+                          }`}
+                          onClick={() => setSidebarOpen(false)}
+                        >
+                          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-50 mr-4 rtl:mr-0 rtl:ml-4">
+                            {link.icon}
+                          </div>
+                          <span className="font-medium">{t(link.labelKey)}</span>
+                        </Link>
+                      </li>
+                    )
+                  })}
                 </ul>
-                {/* Logo under links */}
-                <div className="flex items-center justify-center mt-10 py-6">
-                  <img src="/logo.png" alt="Logo" className="w-20 h-auto opacity-90" />
-                </div>
               </div>
 
               {/* Footer */}
               <div className="border-t border-gray-100 bg-gray-50/50 p-4">
-                <div className="flex items-center justify-center gap-2 mb-4">
+                <div className="flex items-center justify-center gap-2 mb-2">
                   <button
                     onClick={() => handleLangSwitch("en")}
-                    className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 hover:scale-105 ${locale === "en" ? "bg-blue-500 shadow-lg" : "bg-white hover:bg-gray-100 shadow-sm border border-gray-200"}`}
+                    className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 hover:scale-105 ${locale === "en" ? "bg-blue-500 shadow-lg text-white" : "bg-white hover:bg-gray-100 shadow-sm border border-gray-200"}`}
                     aria-label="English"
                   >
                     <img src="/flags/gb.svg" alt="English" className="w-5 h-5 rounded-sm" />
                   </button>
                   <button
                     onClick={() => handleLangSwitch("ar")}
-                    className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 hover:scale-105 ${locale === "ar" ? "bg-blue-500 shadow-lg" : "bg-white hover:bg-gray-100 shadow-sm border border-gray-200"}`}
+                    className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 hover:scale-105 ${locale === "ar" ? "bg-blue-500 shadow-lg text-white" : "bg-white hover:bg-gray-100 shadow-sm border border-gray-200"}`}
                     aria-label="Arabic"
                   >
                     <img src="/flags/sa.svg" alt="Arabic" className="w-5 h-5 rounded-sm" />
                   </button>
-                  <button onClick={handleLogout} className="flex items-center justify-center bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white w-10 h-10 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg">
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center justify-center bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white w-10 h-10 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg"
+                    title={locale === "ar" ? "تسجيل الخروج" : "Logout"}
+                  >
                     <FiLogOut className="w-4 h-4" />
                   </button>
                 </div>

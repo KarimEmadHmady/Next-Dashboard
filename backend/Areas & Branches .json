@@ -1,0 +1,751 @@
+{
+  "info": {
+    "_postman_id": "c4ad5559-c9e2-4633-bcc5-b5778b6c1f4e",
+    "name": "UWD WooCommerce Full API",
+    "description": "Complete REST API documentation for UWD WooCommerce Full API plugin. Requires WooCommerce and Polylang plugins. All authenticated endpoints need JWT token in Authorization header as 'Bearer {{token}}'.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "29895055"
+  },
+  "item": [
+        {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Get User Orders",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "lang",
+                "value": "ar"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/wp-json/api/v1/orders?status=cancelled",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "wp-json",
+                "api",
+                "v1",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "completed",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "processing",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "cancelled"
+                }
+              ]
+            },
+            "description": "Get user's order history."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Single Order",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "lang",
+                "value": "ar"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/wp-json/api/v1/order/331",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "wp-json",
+                "api",
+                "v1",
+                "order",
+                "331"
+              ]
+            },
+            "description": "Get detailed information about a specific order."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Order Timeline",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "lang",
+                "value": "ar"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/wp-json/api/v1/orders/349/timeline",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "wp-json",
+                "api",
+                "v1",
+                "orders",
+                "349",
+                "timeline"
+              ]
+            },
+            "description": "Get order status timeline."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Order Statuses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "lang",
+                "value": "ar"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/wp-json/api/v1/orders/statuses",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "wp-json",
+                "api",
+                "v1",
+                "orders",
+                "statuses"
+              ]
+            },
+            "description": "Get all available order statuses."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Orders by Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "lang",
+                "value": "ar"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/wp-json/api/v1/orders/status/processing",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "wp-json",
+                "api",
+                "v1",
+                "orders",
+                "status",
+                "processing"
+              ]
+            },
+            "description": "Get orders filtered by status."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Order By ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/wp-json/api/v1/orders/349/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "wp-json",
+                "api",
+                "v1",
+                "orders",
+                "349",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin Orders",
+      "item": [
+        {
+          "name": "Get All Admin Orders (Basic)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "lang",
+                "value": "ar"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/wp-json/custom-api/v1/admin/orders",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "wp-json",
+                "custom-api",
+                "v1",
+                "admin",
+                "orders"
+              ]
+            },
+            "description": "Get all orders with default pagination (20 per page). Admin only - requires manage_woocommerce_orders capability."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Admin Orders with Pagination",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "lang",
+                "value": "ar"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/wp-json/custom-api/v1/admin/orders?page=1&limit=50",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "wp-json",
+                "custom-api",
+                "v1",
+                "admin",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)"
+                },
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "description": "Orders per page (default: 20)"
+                }
+              ]
+            },
+            "description": "Get admin orders with custom pagination settings."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Admin Orders by Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "lang",
+                "value": "ar"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/wp-json/custom-api/v1/admin/orders?status=completed",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "wp-json",
+                "custom-api",
+                "v1",
+                "admin",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "completed",
+                  "description": "Filter by order status: pending, processing, on-hold, completed, cancelled, refunded, failed"
+                }
+              ]
+            },
+            "description": "Get orders filtered by specific status."
+          },
+          "response": []
+        },
+        {
+          "name": "Search Admin Orders by Order Number",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "lang",
+                "value": "ar"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/wp-json/custom-api/v1/admin/orders?search=1234",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "wp-json",
+                "custom-api",
+                "v1",
+                "admin",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "1234",
+                  "description": "Search by order number, customer email, or customer name"
+                }
+              ]
+            },
+            "description": "Search orders by order number, email, or customer name."
+          },
+          "response": []
+        },
+        {
+          "name": "Search Admin Orders by Customer Email",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "lang",
+                "value": "ar"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/wp-json/custom-api/v1/admin/orders?search=customer@example.com",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "wp-json",
+                "custom-api",
+                "v1",
+                "admin",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "customer@example.com"
+                }
+              ]
+            },
+            "description": "Search orders by customer email address."
+          },
+          "response": []
+        },
+        {
+          "name": "Sort Admin Orders by Total",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "lang",
+                "value": "ar"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/wp-json/custom-api/v1/admin/orders?orderby=total&order=DESC",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "wp-json",
+                "custom-api",
+                "v1",
+                "admin",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "orderby",
+                  "value": "total",
+                  "description": "Sort field: date, total, or id (default: date)"
+                },
+                {
+                  "key": "order",
+                  "value": "DESC",
+                  "description": "Sort order: ASC or DESC (default: DESC)"
+                }
+              ]
+            },
+            "description": "Get orders sorted by total amount in descending order."
+          },
+          "response": []
+        },
+        {
+          "name": "Advanced Admin Orders Query",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "lang",
+                "value": "ar"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/wp-json/custom-api/v1/admin/orders?status=completed&orderby=total&order=DESC&page=1&limit=30&search=test",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "wp-json",
+                "custom-api",
+                "v1",
+                "admin",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "completed"
+                },
+                {
+                  "key": "orderby",
+                  "value": "total"
+                },
+                {
+                  "key": "order",
+                  "value": "DESC"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "30"
+                },
+                {
+                  "key": "search",
+                  "value": "test"
+                }
+              ]
+            },
+            "description": "Advanced query combining status filter, search, sorting, and pagination."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Areas & Branches",
+      "item": [
+        {
+          "name": "Get All Areas",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "lang",
+                "value": "ar"
+              },
+              {
+                "success-response-example": true,
+                "data": [
+                  {
+                    "id": 79,
+                    "name": "Heliopolis",
+                    "slug": "heliopolis",
+                    "description": "",
+                    "lat": null,
+                    "long": null
+                  },
+                  {
+                    "id": 78,
+                    "name": "Nasr City",
+                    "slug": "nasr-city",
+                    "description": "",
+                    "lat": null,
+                    "long": null
+                  },
+                  {
+                    "id": 77,
+                    "name": "New Cairo",
+                    "slug": "new-cairo",
+                    "description": "",
+                    "lat": null,
+                    "long": null
+                  }
+                ]
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/wp-json/api/v1/areas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "wp-json",
+                "api",
+                "v1",
+                "areas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Branches By Area ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "lang",
+                "value": "ar"
+              },
+              {
+    "success-response-example": true,
+    "data": [
+        {
+            "id": 315,
+            "title": "Domo 7 Plaza",
+            "lat": "",
+            "long": ""
+        },
+        {
+            "id": 314,
+            "title": "Madinaty &#8220;All season&#8221;",
+            "lat": "",
+            "long": ""
+        },
+        {
+            "id": 313,
+            "title": "Fuel-Up",
+            "lat": "",
+            "long": ""
+        },
+        {
+            "id": 312,
+            "title": "Rehab Gateway",
+            "lat": "",
+            "long": ""
+        },
+        {
+            "id": 311,
+            "title": "Mivida",
+            "lat": "",
+            "long": ""
+        },
+        {
+            "id": 310,
+            "title": "Point 90",
+            "lat": "",
+            "long": ""
+        },
+        {
+            "id": 309,
+            "title": "Arabella",
+            "lat": "",
+            "long": ""
+        },
+        {
+            "id": 308,
+            "title": "Madinaty &#8220;Open air&#8221;",
+            "lat": "",
+            "long": ""
+        },
+        {
+            "id": 292,
+            "title": "Concord Plaza",
+            "lat": "30.0249275",
+            "long": "31.482889"
+        }
+    ]
+}
+            ],
+            "url": {
+              "raw": "{{base_url}}/wp-json/api/v1/areas/77/branches/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "wp-json",
+                "api",
+                "v1",
+                "areas",
+                "77",
+                "branches",
+                ""
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://backend.Roxy-shawerma.com"
+    },
+    {
+      "key": "token"
+    }
+  ]
+}

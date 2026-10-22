@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState, useMemo } from "react"
+import { useEffect, useState, useMemo, useCallback } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { FiMapPin, FiLayers, FiShoppingCart, FiUsers, FiUserCheck, FiHome } from "react-icons/fi"
@@ -7,6 +7,12 @@ import { UserPlus, CalendarDays, Clock, Store, User } from "lucide-react"
 import {  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts'
 import OutOfCoverageChart from "@/components/ui/OutOfCoverageChart"
 import { motion } from "framer-motion"
+import { userService } from "@/services/userService"
+import { areaService } from "@/services/areaService"
+import { storeService } from "@/services/storeService"
+import { orderService } from "@/services/orderService"
+import { OrderItem } from "@/types/order"
+import UserModal from "@/components/common/UserModal"
 
 type CityData = {
   id: number
@@ -50,6 +56,7 @@ const citiesData: CityData[] = [
 
 const stats = [
   {
+    key: "areas",
     label: { ar: "المناطق", en: "Areas" },
     value: 12,
     icon: <FiMapPin size={28} />,
@@ -57,6 +64,7 @@ const stats = [
     href: "area-manager",
   },
   {
+    key: "branches",
     label: { ar: "الفروع", en: "Branches" },
     value: 8,
     icon: <FiLayers size={28} />,
@@ -64,6 +72,7 @@ const stats = [
     href: "branch-manager",
   },
   {
+    key: "orders",
     label: { ar: "الطلبات", en: "Orders" },
     value: 34,
     icon: <FiShoppingCart size={28} />,
@@ -71,6 +80,7 @@ const stats = [
     href: "orders",
   },
   {
+    key: "storeManagers",
     label: { ar: "مسؤولي الفروع", en: "Branch Responsibles" },
     value: 5,
     icon: <FiUsers size={28} />,
@@ -78,6 +88,7 @@ const stats = [
     href: "branch-responsible",
   },
   {
+    key: "storeUsers",
     label: { ar: "مستخدمو الفروع", en: "Branch Users" },
     value: 20,
     icon: <FiUserCheck size={28} />,
@@ -106,47 +117,77 @@ const weeklyData = [
   { name: 'السبت', ar: 'السبت', en: 'Sat', orders: 20, revenue: 4000 },
 ]
 
-function Modal({ open, onClose, children }: { open: boolean; onClose: () => void; children: React.ReactNode }) {
-  if (!open) return null
-  return (
-    <div className="fixed inset-0 z-[99999999] flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md relative animate-fade-in z-[999999]">
-        <button
-          onClick={onClose}
-          className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl font-bold"
-          aria-label="Close"
-        >
-          ×
-        </button>
-        {children}
-      </div>
-    </div>
-  )
+const orderStatusMeta: Record<string, { en: string; ar: string; className: string; dot: string }> = {
+  completed: { en: "Completed", ar: "مكتمل", className: "bg-green-50 text-green-700 border-green-200", dot: "bg-green-500" },
+  processing: { en: "Processing", ar: "قيد التنفيذ", className: "bg-yellow-50 text-yellow-700 border-yellow-200", dot: "bg-yellow-500" },
+  cancelled: { en: "Cancelled", ar: "ملغي", className: "bg-red-50 text-red-700 border-red-200", dot: "bg-secondary" },
+  pending: { en: "Pending", ar: "قيد المراجعة", className: "bg-blue-50 text-blue-700 border-blue-200", dot: "bg-blue-500" },
+  "on-hold": { en: "On Hold", ar: "معلق", className: "bg-amber-50 text-amber-700 border-amber-200", dot: "bg-amber-500" },
+  refunded: { en: "Refunded", ar: "مسترد", className: "bg-purple-50 text-purple-700 border-purple-200", dot: "bg-purple-500" },
+  failed: { en: "Failed", ar: "فاشل", className: "bg-gray-100 text-gray-700 border-gray-300", dot: "bg-gray-500" },
 }
 
-function OrderDetailsModal({ open, onClose, order, locale }: { open: boolean; onClose: () => void; order: LatestOrder | null; locale: "ar" | "en" }) {
+function OrderDetailsModal({ open, onClose, order, locale }: { open: boolean; onClose: () => void; order: OrderItem | null; locale: "ar" | "en" }) {
   if (!open || !order) return null
-  const meta = statusMeta[order.status]
-  const salesPerson = locale === "ar" ? "موظف المبيعات: غير محدد" : "Sales: N/A"
-  const areaManager = order.manager[locale]
+  const meta = orderStatusMeta[order.status] || {
+    en: order.status,
+    ar: order.status,
+    className: "bg-gray-50 text-gray-700 border-gray-200",
+    dot: "bg-gray-400",
+  }
+
+  let formattedDate = order.date || "-"
+  let formattedTime = "-"
+  if (order.date) {
+    try {
+      const d = new Date(order.date)
+      if (!isNaN(d.getTime())) {
+        formattedDate = d.toISOString().split("T")[0]
+        formattedTime = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   return (
     <div className="fixed inset-0 z-[99999999] flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl relative animate-fade-in font-[Cairo] flex flex-col border border-gray-100 max-h-[90vh]">
-        <button onClick={onClose} className="sticky top-0 right-0 self-end z-20 mt-6 mr-6 text-gray-400 hover:text-secondary text-3xl font-bold bg-white rounded-full">×</button>
+        <button onClick={onClose} className="sticky top-0 right-0 self-end z-20 mt-6 mr-6 rtl:mr-auto rtl:ml-6 text-gray-400 hover:text-secondary text-3xl font-bold bg-white rounded-full">×</button>
         <div className="overflow-y-auto px-8 pt-2 pb-8" style={{ maxHeight: '80vh' }}>
-          <h2 className="text-3xl font-extrabold text-gray-900 mb-1">{order.id}</h2>
+          <h2 className="text-3xl font-extrabold text-gray-900 mb-1">
+            #{order.orderNumber || order.id}
+          </h2>
           <div className={`inline-flex items-center gap-2 border rounded-full px-3 py-1 text-xs font-medium mb-6 ${meta.className}`}>
             <span className={`w-2 h-2 rounded-full ${meta.dot}`} /> {meta[locale]}
           </div>
           <div className="space-y-4">
-            <div className="flex items-center gap-2 text-lg text-gray-600"><span className="font-semibold">{locale === 'ar' ? 'الفرع:' : 'Branch:'}</span> <span className="text-gray-900">{order.branch[locale]}</span></div>
-            <div className="flex items-center gap-2 text-lg text-gray-600"><span className="font-semibold">{locale === 'ar' ? 'مدير المنطقة:' : 'Area Manager:'}</span> <span className="text-gray-900">{areaManager}</span></div>
-            <div className="flex items-center gap-2 text-lg text-gray-600"><span className="font-semibold">{locale === 'ar' ? 'المبيعات:' : 'Sales:'}</span> <span className="text-gray-500">{salesPerson}</span></div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-center gap-2 text-lg text-gray-600"><span className="font-semibold">{locale === 'ar' ? 'التاريخ:' : 'Date:'}</span> <span className="text-gray-900">{order.date}</span></div>
-              <div className="flex items-center gap-2 text-lg text-gray-600"><span className="font-semibold">{locale === 'ar' ? 'الوقت:' : 'Time:'}</span> <span className="text-gray-900">{order.time}</span></div>
+            <div className="flex items-center gap-2 text-lg text-gray-600">
+              <span className="font-semibold">{locale === 'ar' ? 'الفرع:' : 'Branch:'}</span>
+              <span className="text-gray-900 font-bold">{order.storeName || (locale === 'ar' ? 'غير محدد' : 'Unassigned')}</span>
             </div>
-            <div className="flex items-center gap-2 text-lg text-gray-600"><span className="font-semibold">{locale === 'ar' ? 'الإجمالي:' : 'Total:'}</span> <span className="text-blue-700 font-bold">{order.total} L.E</span></div>
+            <div className="flex items-center gap-2 text-lg text-gray-600">
+              <span className="font-semibold">{locale === 'ar' ? 'المنطقة:' : 'Area:'}</span>
+              <span className="text-gray-900">{order.areaName || (locale === 'ar' ? 'غير محدد' : '-')}</span>
+            </div>
+            <div className="flex items-center gap-2 text-lg text-gray-600">
+              <span className="font-semibold">{locale === 'ar' ? 'العميل:' : 'Customer:'}</span>
+              <span className="text-gray-900">{order.customer?.name || (locale === 'ar' ? 'عميل مباشر' : 'Direct Customer')}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center gap-2 text-lg text-gray-600">
+                <span className="font-semibold">{locale === 'ar' ? 'التاريخ:' : 'Date:'}</span>
+                <span className="text-gray-900">{formattedDate}</span>
+              </div>
+              <div className="flex items-center gap-2 text-lg text-gray-600">
+                <span className="font-semibold">{locale === 'ar' ? 'الوقت:' : 'Time:'}</span>
+                <span className="text-gray-900">{formattedTime}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-lg text-gray-600">
+              <span className="font-semibold">{locale === 'ar' ? 'الإجمالي:' : 'Total:'}</span>
+              <span className="text-blue-700 font-bold">{order.total} {order.currency || 'L.E'}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -170,7 +211,70 @@ const ManagerView = () => {
   const [open, setOpen] = useState(false)
   const fabPosition = locale === "ar" ? "left-6" : "right-6"
   const [orderModalOpen, setOrderModalOpen] = useState(false)
-  const [selectedOrder, setSelectedOrder] = useState<LatestOrder | null>(null)
+  const [selectedOrder, setSelectedOrder] = useState<OrderItem | null>(null)
+  const [latestOrders, setLatestOrders] = useState<OrderItem[]>([])
+
+  const [mapCities, setMapCities] = useState<CityData[]>([])
+
+  const [counts, setCounts] = useState({
+    areas: 0,
+    branches: 0,
+    orders: 0,
+    storeManagers: 0,
+    storeUsers: 0,
+  })
+
+  const fetchCounts = useCallback(async () => {
+    try {
+      const [areasList, storesList, smRes, suRes, ordersRes] = await Promise.allSettled([
+        areaService.listAreas(),
+        storeService.listStores(),
+        userService.listUsers({ role: "STORE_MANAGER" }),
+        userService.listUsers({ role: "STORE_USER" }),
+        orderService.listOrders({ limit: 5 }),
+      ])
+
+      const totalBranches = storesList.status === "fulfilled" ? storesList.value.length : 0
+
+      if (areasList.status === "fulfilled") {
+        const colors = ["#06b6d4", "#f59e0b", "#8b5cf6", "#ef4444", "#10b981", "#3b82f6"]
+        const dynamicCities: CityData[] = areasList.value
+          .filter((a) => a.lat !== null && a.lng !== null)
+          .map((a, idx) => ({
+            id: idx + 1,
+            name: { ar: a.name, en: a.name },
+            coordinates: { lat: Number(a.lat), lng: Number(a.lng) },
+            orders: (a.storeCount || 1) * 20,
+            percentage: Math.round(((a.storeCount || 1) / Math.max(totalBranches, 1)) * 100),
+            color: colors[idx % colors.length],
+            region: { ar: a.name, en: a.name },
+          }))
+
+        if (dynamicCities.length > 0) {
+          setMapCities(dynamicCities)
+        }
+      }
+
+      if (ordersRes.status === "fulfilled") {
+        setLatestOrders(ordersRes.value.data)
+      }
+
+      setCounts((prev) => ({
+        ...prev,
+        areas: areasList.status === "fulfilled" ? areasList.value.length : prev.areas,
+        branches: storesList.status === "fulfilled" ? storesList.value.length : prev.branches,
+        orders: ordersRes.status === "fulfilled" ? ordersRes.value.meta.total : prev.orders,
+        storeManagers: smRes.status === "fulfilled" ? smRes.value.meta.total : prev.storeManagers,
+        storeUsers: suRes.status === "fulfilled" ? suRes.value.meta.total : prev.storeUsers,
+      }))
+    } catch {
+      // ignore
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchCounts()
+  }, [fetchCounts])
 
   useEffect(() => {
     const checkScreen = () => setIsSmallScreen(window.innerWidth <= 500)
@@ -280,7 +384,7 @@ const ManagerView = () => {
                   <div
                     className={`font-extrabold text-gray-900 truncate ${small ? "text-2xl" : "3xl"}`}
                   >
-                    {stat.value}
+                    {counts[stat.key as keyof typeof counts] ?? stat.value}
                   </div>
                                 <div className={`text-gray-600 truncate ${small ? "text-sm" : "base"}`}>
                   {stat.label[locale]}
@@ -353,13 +457,13 @@ const ManagerView = () => {
             <div className="bg-teal-100 h-full flex flex-col pt-2 rounded-[20px] ">
               <div className="mb-4 text-center">
                 <h3 className="text-lg font-bold text-gray-900 mb-1">
-                  {locale === "ar" ? "طلبات خارج التغطية" : "Out of Coverage Orders"}
+                  {locale === "ar" ? "خريطة توزيع المناطق والفروع" : "Areas & Branches Distribution"}
                 </h3>
                 <p className="text-sm text-gray-600">
-                  {locale === "ar" ? "المدن مع أعلى عدد من الطلبات خارج نطاق التغطية" : "Cities with highest out-of-coverage orders"}
+                  {locale === "ar" ? "المواقع الجغرافية الحية من قاعدة البيانات" : "Live geographical locations from backend"}
                 </p>
               </div>
-              <OutOfCoverageChart cities={citiesData} locale={locale} />
+              <OutOfCoverageChart cities={mapCities.length > 0 ? mapCities : citiesData} locale={locale} />
             </div>
             </motion.div>
           </motion.div>
@@ -514,43 +618,91 @@ const ManagerView = () => {
               {locale === "ar" ? "أحدث الطلبات" : "Latest Orders"}
             </div>
             <div className="flex flex-col gap-3">
-              {latestOrders.map((order: LatestOrder, idx: number) => {
-                const meta = statusMeta[order.status]
-                return (
-                  <div
-                    key={order.id}
-                    className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition cursor-pointer"
-                    onClick={() => { setSelectedOrder(order); setOrderModalOpen(true); }}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="text-gray-900 font-bold text-base truncate">{order.id}</div>
-                        <div className={`mt-1.5 inline-flex items-center gap-2 border rounded-full px-2 py-0.5 text-[10px] font-medium ${meta.className}`}>
-                          <span className={`w-2 h-2 rounded-full ${meta.dot}`} />
-                          {meta[locale]}
+              {latestOrders.length === 0 ? (
+                <div className="p-6 text-center text-sm text-gray-500 bg-gray-50 rounded-xl">
+                  {locale === "ar" ? "لا توجد طلبات مسجلة حالياً" : "No recent orders"}
+                </div>
+              ) : (
+                latestOrders.map((order: OrderItem) => {
+                  const meta = orderStatusMeta[order.status] || {
+                    en: order.status,
+                    ar: order.status,
+                    className: "bg-gray-50 text-gray-700 border-gray-200",
+                    dot: "bg-gray-400",
+                  }
+
+                  let fDate = order.date || "-"
+                  let fTime = "-"
+                  if (order.date) {
+                    try {
+                      const d = new Date(order.date)
+                      if (!isNaN(d.getTime())) {
+                        fDate = d.toISOString().split("T")[0]
+                        fTime = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                      }
+                    } catch {
+                      // ignore
+                    }
+                  }
+
+                  return (
+                    <div
+                      key={order.id}
+                      className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition cursor-pointer"
+                      onClick={() => {
+                        setSelectedOrder(order)
+                        setOrderModalOpen(true)
+                      }}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="text-gray-900 font-bold text-base truncate">
+                            #{order.orderNumber || order.id}
+                          </div>
+                          <div
+                            className={`mt-1.5 inline-flex items-center gap-2 border rounded-full px-2 py-0.5 text-[10px] font-medium ${meta.className}`}
+                          >
+                            <span className={`w-2 h-2 rounded-full ${meta.dot}`} />
+                            {meta[locale]}
+                          </div>
+                        </div>
+                        <div className="text-end text-xs text-gray-500">
+                          <div>
+                            {locale === "ar" ? "الوقت" : "Time"}:{" "}
+                            <span className="text-gray-800 font-medium">{fTime}</span>
+                          </div>
+                          <div className="mt-1">
+                            {locale === "ar" ? "التاريخ" : "Date"}:{" "}
+                            <span className="text-gray-800 font-medium">{fDate}</span>
+                          </div>
                         </div>
                       </div>
-                      <div className="text-right text-xs text-gray-500">
-                        <div>{locale === 'ar' ? 'الوقت' : 'Time'}: <span className="text-gray-800 font-medium">{order.time}</span></div>
-                        <div className="mt-1">{locale === 'ar' ? 'التاريخ' : 'Date'}: <span className="text-gray-800 font-medium">{order.date}</span></div>
+                      <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-2.5 py-1.5">
+                          <Store size={14} className="text-cyan-600 shrink-0" />
+                          <div className="text-xs text-gray-700 truncate">
+                            {order.storeName || (locale === "ar" ? "المتجر" : "Store")}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-2.5 py-1.5">
+                          <User size={14} className="text-indigo-600 shrink-0" />
+                          <div className="text-xs text-gray-700 truncate">
+                            {order.customer?.name || (locale === "ar" ? "عميل" : "Customer")}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-2.5 py-1.5">
+                          <div className="text-xs text-gray-700 truncate font-semibold font-mono">
+                            {order.total}{" "}
+                            <span className="text-[10px] text-gray-500 font-normal">
+                              {order.currency || "L.E"}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                      <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-2.5 py-1.5">
-                        <Store size={14} className="text-cyan-600" />
-                        <div className="text-xs text-gray-700 truncate">{order.branch[locale]}</div>
-                      </div>
-                      <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-2.5 py-1.5">
-                        <User size={14} className="text-indigo-600" />
-                        <div className="text-xs text-gray-700 truncate">{order.manager[locale]}</div>
-                      </div>
-                      <div className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-2.5 py-1.5">
-                        <div className="text-xs text-gray-700 truncate font-semibold">{order.total} <span className="text-[10px] text-gray-500">L.E</span></div>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
+                  )
+                })
+              )}
             </div>
           </motion.div>
           {/* زر إضافة مستخدم جديد (صغير + أيقونة) */}
@@ -571,9 +723,14 @@ const ManagerView = () => {
           >
             <UserPlus size={28} />
           </button>
-          <Modal open={open} onClose={() => setOpen(false)}>
-            <UserManagementForms locale={locale} />
-          </Modal>
+          <UserModal
+            open={open}
+            onClose={() => setOpen(false)}
+            defaultRole="AREA_MANAGER"
+            onSuccess={() => {
+              fetchCounts()
+            }}
+          />
           <OrderDetailsModal open={orderModalOpen} onClose={() => setOrderModalOpen(false)} order={selectedOrder} locale={locale} />
         </div>
       </div>
@@ -582,331 +739,3 @@ const ManagerView = () => {
 }
 
 export default ManagerView
-
-// ---- User Management Forms ----
-import React from "react"
-
-type Locale = "ar" | "en"
-
-type StoreOption = { id: string; label: Record<Locale, string> }
-const availableStores: StoreOption[] = [
-  { id: "first-settlement", label: { en: "Store - First Settlement", ar: "المتجر - التجمع الاول" } },
-  { id: "dokki", label: { en: "Store - Dokki", ar: "المتجر - الدقى" } },
-  { id: "sheraton", label: { en: "Store - Sheraton", ar: "المتجر - شيراتون" } },
-]
-
-// قائمة المناطق والمتاجر التابعة لها
-const availableAreas = [
-  {
-    id: "cairo",
-    label: { en: "Cairo Area", ar: "منطقة القاهرة" },
-    stores: [
-      { id: "first-settlement", label: { en: "Store - First Settlement", ar: "المتجر - التجمع الاول" } },
-      { id: "dokki", label: { en: "Store - Dokki", ar: "المتجر - الدقى" } },
-    ],
-  },
-  {
-    id: "giza",
-    label: { en: "Giza Area", ar: "منطقة الجيزة" },
-    stores: [
-      { id: "sheraton", label: { en: "Store - Sheraton", ar: "المتجر - شيراتون" } },
-    ],
-  },
-]
-
-type CreatePayload = {
-  name: string
-  email: string
-  password: string
-  storeId?: string
-  role: "AREA_MANAGER" | "STORE_MANAGER" | "USER_STORE"
-}
-
-function UserManagementForms({ locale }: { locale: Locale }) {
-  const title = locale === "ar" ? "إدارة المستخدمين" : "User Management"
-  const subtitle =
-    locale === "ar"
-      ? "إنشاء حسابات: مدير المناطق، مدير المتجر، ومستخدم المتجر"
-      : "Create Area Manager, Store Manager, and User Store accounts"
-
-  // Tab state
-  const [selectedRole, setSelectedRole] = useState<"AREA_MANAGER" | "STORE_MANAGER" | "USER_STORE">("AREA_MANAGER")
-
-  // Tab labels
-  const tabOptions = [
-    {
-      key: "AREA_MANAGER" as const,
-      label: locale === "ar" ? "مدير المناطق" : "Area Manager",
-      requireStore: false,
-    },
-    {
-      key: "STORE_MANAGER" as const,
-      label: locale === "ar" ? "مدير المتجر" : "Store Manager",
-      requireStore: true,
-    },
-    {
-      key: "USER_STORE" as const,
-      label: locale === "ar" ? "مستخدم المتجر" : "User Store",
-      requireStore: true,
-    },
-  ]
-
-  return (
-    <div>
-      <div className="mb-6">
-        <div className="text-xl font-bold text-gray-900">{title}</div>
-        <div className="text-sm text-gray-500">{subtitle}</div>
-      </div>
-      {/* Tabs */}
-      <div className="flex gap-2 mb-6">
-        {tabOptions.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setSelectedRole(tab.key)}
-            className={`px-4 py-2 rounded-lg font-semibold border transition-all duration-200 focus:outline-none ${selectedRole === tab.key ? "bg-black text-white border-black" : "bg-white text-gray-700 border-gray-200 hover:bg-gray-100"}`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-      {/* Only show the selected card */}
-      <div className="max-w-md mx-auto">
-        {tabOptions.filter((tab) => tab.key === selectedRole).map((tab) => (
-          <CreateCard
-            key={tab.key}
-            heading={tab.label}
-            locale={locale}
-            role={tab.key}
-            requireStore={tab.requireStore}
-          />
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function CreateCard({
-  heading,
-  locale,
-  role,
-  requireStore,
-}: {
-  heading: string
-  locale: Locale
-  role: CreatePayload["role"]
-  requireStore: boolean
-}) {
-  // State
-  const [form, setForm] = useState<CreatePayload>({ name: "", email: "", password: "", role })
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [selectedArea, setSelectedArea] = useState<string>("")
-  // Toast state
-  const [showToast, setShowToast] = useState(false)
-  const [toastMsg, setToastMsg] = useState("")
-  // --- NEW: users state ---
-  const [users, setUsers] = useState<CreatePayload[]>(() => {
-    if (typeof window !== "undefined") {
-      const key =
-        role === "AREA_MANAGER"
-          ? "areaManagers"
-          : role === "STORE_MANAGER"
-          ? "storeManagers"
-          : "userStores"
-      return JSON.parse(localStorage.getItem(key) || "[]")
-    }
-    return []
-  })
-
-  // --- NEW: sync users to localStorage ---
-  useEffect(() => {
-    const key =
-      role === "AREA_MANAGER"
-        ? "areaManagers"
-        : role === "STORE_MANAGER"
-        ? "storeManagers"
-        : "userStores"
-    if (typeof window !== "undefined") {
-      localStorage.setItem(key, JSON.stringify(users))
-    }
-  }, [users, role])
-
-  // --- NEW: update users if role changes (tab switch) ---
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const key =
-        role === "AREA_MANAGER"
-          ? "areaManagers"
-          : role === "STORE_MANAGER"
-          ? "storeManagers"
-          : "userStores"
-      setUsers(JSON.parse(localStorage.getItem(key) || "[]"))
-    }
-  }, [role])
-
-  // Get stores for selected area (for AREA_MANAGER)
-  const storesForArea = selectedArea
-    ? availableAreas.find((a) => a.id === selectedArea)?.stores || []
-    : []
-
-  // For other roles, use all stores
-  const storeOptions =
-    role === "AREA_MANAGER"
-      ? storesForArea
-      : availableStores
-
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-    try {
-      // --- NEW: add user to localStorage ---
-      const newUser = { ...form, storeId: requireStore ? form.storeId : undefined }
-      setUsers((prev) => [...prev, newUser])
-      setToastMsg(locale === "ar" ? "تم إنشاء المستخدم بنجاح " : "User created successfully ")
-      setShowToast(true)
-      setForm({ name: "", email: "", password: "", role, storeId: requireStore ? form.storeId : undefined })
-      setSelectedArea("")
-      setTimeout(() => setShowToast(false), 2000)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const l = {
-    name: locale === "ar" ? "الاسم" : "Name",
-    email: locale === "ar" ? "البريد الإلكتروني" : "Email",
-    password: locale === "ar" ? "كلمة المرور" : "Password",
-    area: locale === "ar" ? "المنطقة" : "Area",
-    store: locale === "ar" ? "المتجر" : "Store",
-    select: locale === "ar" ? "اختر" : "Select",
-    create: locale === "ar" ? "إنشاء" : "Create",
-  }
-
-  return (
-    <div className="bg-gray-50 rounded-xl border border-gray-100 p-4 relative">
-      {/* Toast */}
-      {showToast && (
-        <div className="absolute left-1/2 -translate-x-1/2 top-2 z-20 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-semibold animate-fade-in">
-          {toastMsg}
-        </div>
-      )}
-      <div className="font-semibold text-gray-900 mb-3">{heading}</div>
-      <form onSubmit={onSubmit} className="space-y-3">
-        {/* Area selection for AREA_MANAGER only */}
-        {role === "AREA_MANAGER" && (
-          <div>
-            <label className="block text-xs text-gray-600 mb-1">{l.area}</label>
-            <select
-              required
-              value={selectedArea}
-              onChange={(e) => {
-                setSelectedArea(e.target.value)
-                setForm((f) => ({ ...f, storeId: "" })) // Reset store when area changes
-              }}
-              className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            >
-              <option value="" disabled>
-                {l.select}
-              </option>
-              {availableAreas.map((area) => (
-                <option key={area.id} value={area.id}>
-                  {area.label[locale]}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-        {/* Store selection for AREA_MANAGER (after area), or for other roles */}
-        {requireStore && (
-          <div>
-            <label className="block text-xs text-gray-600 mb-1">{l.store}</label>
-            <select
-              required
-              value={form.storeId || ""}
-              onChange={(e) => setForm((f) => ({ ...f, storeId: e.target.value }))}
-              className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              disabled={role === "AREA_MANAGER" && !selectedArea}
-            >
-              <option value="" disabled>
-                {l.select}
-              </option>
-              {storeOptions.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.label[locale]}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-        {/* Name */}
-        <div>
-          <label className="block text-xs text-gray-600 mb-1">{l.name}</label>
-          <input
-            type="text"
-            required
-            value={form.name}
-            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            placeholder={locale === "ar" ? "اكتب الاسم" : "Enter full name"}
-          />
-        </div>
-        {/* Email */}
-        <div>
-          <label className="block text-xs text-gray-600 mb-1">{l.email}</label>
-          <input
-            type="email"
-            required
-            value={form.email}
-            onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-            className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            placeholder={locale === "ar" ? "name@example.com" : "name@example.com"}
-          />
-        </div>
-        {/* Password */}
-        <div>
-          <label className="block text-xs text-gray-600 mb-1">{l.password}</label>
-          <input
-            type="password"
-            required
-            value={form.password}
-            onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-            className="w-full h-10 rounded-lg border border-gray-200 px-3 text-sm bg-white text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            placeholder={locale === "ar" ? "••••••••" : "••••••••"}
-          />
-        </div>
-        <div className="pt-1">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full h-10 rounded-lg bg-black text-white text-sm font-medium hover:bg-neutral-800 transition disabled:opacity-60"
-          >
-            {isSubmitting ? (locale === "ar" ? "جارٍ الإنشاء..." : "Creating...") : l.create}
-          </button>
-        </div>
-      </form>
-    </div>
-  )
-}
-
-// بيانات أحدث الطلبات (مطابقة لصفحة orders)
-type LatestOrder = {
-  id: string
-  branch: { en: string; ar: string }
-  manager: { en: string; ar: string }
-  time: string
-  date: string
-  status: "completed" | "in_progress" | "cancelled" | "pending"
-  total: number
-}
-const latestOrders: LatestOrder[] = [
-  { id: "ORD-10231", branch: { en: "Store - First Settlement", ar: "المتجر - التجمع الاول" }, manager: { en: "Ahmed Hassan", ar: "أحمد حسن" }, time: "10:24", date: "2025-08-18", status: "completed", total: 320 },
-  { id: "ORD-10232", branch: { en: "Store - Dokki", ar: "المتجر - الدقى" }, manager: { en: "Youssef Ahmed", ar: "يوسف أحمد" }, time: "11:05", date: "2025-08-18", status: "in_progress", total: 210 },
-  { id: "ORD-10233", branch: { en: "Store - Sheraton", ar: "المتجر - شيراتون" }, manager: { en: "Mohamed Youssef", ar: "محمد يوسف" }, time: "12:42", date: "2025-08-17", status: "cancelled", total: 0 },
-  { id: "ORD-10234", branch: { en: "Store - First Settlement", ar: "المتجر - التجمع الاول" }, manager: { en: "Ahmed Hassan", ar: "أحمد حسن" }, time: "14:19", date: "2025-08-16", status: "pending", total: 95 },
-  { id: "ORD-10235", branch: { en: "Store - Dokki", ar: "المتجر - الدقى" }, manager: { en: "Youssef Ahmed", ar: "يوسف أحمد" }, time: "09:15", date: "2025-08-16", status: "completed", total: 180 },
-]
-const statusMeta: Record<LatestOrder["status"], { en: string; ar: string; className: string; dot: string }> = {
-  completed: { en: "Completed", ar: "مكتمل", className: "bg-green-50 text-green-700 border-green-200", dot: "bg-green-500" },
-  in_progress: { en: "In Progress", ar: "قيد التنفيذ", className: "bg-yellow-50 text-yellow-700 border-yellow-200", dot: "bg-yellow-500" },
-  cancelled: { en: "Cancelled", ar: "ملغي", className: "bg-red-50 text-red-700 border-red-200", dot: "bg-secondary" },
-  pending: { en: "Pending", ar: "قيد المراجعة", className: "bg-blue-50 text-blue-700 border-blue-200", dot: "bg-blue-500" },
-}

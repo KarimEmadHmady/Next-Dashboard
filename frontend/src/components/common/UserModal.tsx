@@ -230,7 +230,7 @@ export default function UserModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto z-[99999999]"
       dir={isRTL ? 'rtl' : 'ltr'}
     >
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 sm:p-8 relative border border-gray-100 my-8">
@@ -288,8 +288,8 @@ export default function UserModal({
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder={isRTL ? 'مثال: أحمد محمود' : 'e.g. John Doe'}
-                className="w-full h-11 rounded-xl border border-gray-200 pl-10 rtl:pl-3 rtl:pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                placeholder={isRTL ? 'مثال: أحمد محمود' : 'e.g. Ahmed mahnoud'}
+                className="w-full h-11 rounded-xl border border-gray-200 pl-10 rtl:pl-3 rtl:pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 placeholder:text-gray-500"
               />
             </div>
           </div>
@@ -307,8 +307,8 @@ export default function UserModal({
                 disabled={!!userToEdit}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="user@roxy.com"
-                className={`w-full h-11 rounded-xl border border-gray-200 pl-10 rtl:pl-3 rtl:pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 ${
+                placeholder="user@cinnabon.com"
+                className={`w-full h-11 rounded-xl border border-gray-200 pl-10 rtl:pl-3 rtl:pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 placeholder:text-gray-500 ${
                   userToEdit ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
                 }`}
               />
@@ -327,7 +327,7 @@ export default function UserModal({
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="01012345678"
-                className="w-full h-11 rounded-xl border border-gray-200 pl-10 rtl:pl-3 rtl:pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full h-11 rounded-xl border border-gray-200 pl-10 rtl:pl-3 rtl:pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 placeholder:text-gray-500"
               />
             </div>
           </div>
@@ -351,7 +351,7 @@ export default function UserModal({
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full h-11 rounded-xl border border-gray-200 pl-10 rtl:pl-3 rtl:pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full h-11 rounded-xl border border-gray-200 pl-10 rtl:pl-3 rtl:pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 placeholder:text-gray-500"
               />
             </div>
             <p className="text-[11px] text-gray-400 mt-1">
@@ -378,7 +378,7 @@ export default function UserModal({
                       setStoreId('');
                     }
                   }}
-                  className="w-full h-11 rounded-xl border border-gray-200 pl-10 rtl:pl-3 rtl:pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+                  className="w-full h-11 rounded-xl border border-gray-200 pl-10 rtl:pl-3 rtl:pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white text-gray-800"
                 >
                   {availableRoles.map((r) => (
                     <option key={r} value={r}>
@@ -402,11 +402,15 @@ export default function UserModal({
                   <select
                     value={areaId}
                     onChange={(e) => handleAreaChange(e.target.value)}
-                    className="w-full h-11 rounded-xl border border-gray-200 pl-10 rtl:pl-3 rtl:pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+                    className={`w-full h-11 rounded-xl border border-gray-200 pl-10 rtl:pl-3 rtl:pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white ${
+                      !areaId ? 'text-gray-500' : 'text-gray-800'
+                    }`}
                   >
-                    <option value="">{isRTL ? '-- اختر المنطقة --' : '-- Select Area --'}</option>
+                    <option value="" className="text-gray-500">
+                      {isRTL ? '-- اختر المنطقة --' : '-- Select Area --'}
+                    </option>
                     {areas.map((a) => (
-                      <option key={a.id} value={a.id}>
+                      <option key={a.id} value={a.id} className="text-gray-800">
                         {a.name}
                       </option>
                     ))}
@@ -427,11 +431,15 @@ export default function UserModal({
                   <select
                     value={storeId}
                     onChange={(e) => handleStoreChange(e.target.value)}
-                    className="w-full h-11 rounded-xl border border-gray-200 pl-10 rtl:pl-3 rtl:pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+                    className={`w-full h-11 rounded-xl border border-gray-200 pl-10 rtl:pl-3 rtl:pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white ${
+                      !storeId ? 'text-gray-500' : 'text-gray-800'
+                    }`}
                   >
-                    <option value="">{isRTL ? '-- اختر الفرع --' : '-- Select Store --'}</option>
+                    <option value="" className="text-gray-500">
+                      {isRTL ? '-- اختر الفرع --' : '-- Select Store --'}
+                    </option>
                     {filteredStores.map((s) => (
-                      <option key={s.id} value={s.id}>
+                      <option key={s.id} value={s.id} className="text-gray-800">
                         {s.name} {s.areaName ? `(${s.areaName})` : ''}
                       </option>
                     ))}

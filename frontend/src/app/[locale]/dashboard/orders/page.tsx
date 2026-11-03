@@ -125,7 +125,7 @@ function OrderModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto z-[99999]"
       dir={isRTL ? "rtl" : "ltr"}
     >
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl relative animate-fade-in font-[Cairo] flex flex-col border border-gray-100 max-h-[90vh] my-6">
@@ -422,11 +422,11 @@ const OrdersView = () => {
                 setPage(1)
               }}
               placeholder={locale === "ar" ? "ابحث برقم الطلب أو العميل..." : "Search order # or customer..."}
-              className="w-full h-10 pl-9 rtl:pl-3 rtl:pr-9 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white placeholder-gray-400"
+              className="w-full h-10 pl-9 rtl:pl-3 rtl:pr-9 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white text-gray-500 placeholder:text-gray-500"
             />
           </div>
 
-          <div className="flex flex-wrap gap-2.5 items-center w-full sm:w-auto">
+          <div className="flex flex-wrap gap-2.5 items-center w-full sm:w-auto text-gray-500 placeholder:text-gray-500">
             {/* Status Filter */}
             <select
               value={statusFilter}
@@ -592,17 +592,24 @@ const OrdersView = () => {
             </motion.div>
 
             {/* Pagination Controls */}
+            {/* Pagination Controls */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-3 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm max-w-sm mx-auto">
+              <div
+                dir="ltr"
+                className="flex items-center justify-center gap-3 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm max-w-sm mx-auto"
+              >
                 <button
                   disabled={page <= 1}
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   className="p-2 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  <ChevronRight size={18} className="rtl:rotate-180" />
+                  <ChevronLeft size={18} />
                 </button>
 
-                <div className="text-sm font-semibold text-gray-700">
+                <div
+                  dir={locale === "ar" ? "rtl" : "ltr"}
+                  className="text-sm font-semibold text-gray-700"
+                >
                   {locale === "ar" ? `صفحة ${page} من ${totalPages}` : `Page ${page} of ${totalPages}`}
                 </div>
 
@@ -611,7 +618,7 @@ const OrdersView = () => {
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   className="p-2 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  <ChevronLeft size={18} className="rtl:rotate-180" />
+                  <ChevronRight size={18} />
                 </button>
               </div>
             )}

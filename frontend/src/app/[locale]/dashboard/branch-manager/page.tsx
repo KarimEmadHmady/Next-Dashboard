@@ -67,7 +67,7 @@ function StoreModal({
   const hasCoordinates = store.lat !== null && store.lng !== null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto z-[99999]">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl relative animate-fade-in font-[Cairo] flex flex-col border border-gray-100 max-h-[90vh] my-6">
         <button
           onClick={onClose}
@@ -314,7 +314,7 @@ const BranchManagerView = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={locale === "ar" ? "ابحث باسم الفرع أو المنطقة..." : "Search by branch or area..."}
-              className="w-full h-10 pl-9 rtl:pl-3 rtl:pr-9 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full h-10 pl-9 rtl:pl-3 rtl:pr-9 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-500 placeholder:text-gray-500"
             />
           </div>
 
@@ -324,7 +324,7 @@ const BranchManagerView = () => {
             <select
               value={selectedAreaId}
               onChange={(e) => setSelectedAreaId(e.target.value)}
-              className="h-10 px-3 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 w-full sm:w-48"
+              className="h-10 px-3 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 w-full sm:w-48 text-gray-500 placeholder:text-gray-500"
             >
               <option value="ALL">{locale === "ar" ? "كل المناطق" : "All Areas"}</option>
               {areas.map((a) => (

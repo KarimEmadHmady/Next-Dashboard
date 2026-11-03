@@ -162,7 +162,7 @@ export default function BranchResponsiblePage() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder={isRTL ? "بحث بالاسم، الإيميل أو الهاتف..." : "Search by name, email, or phone..."}
-            className="w-full h-11 pl-10 rtl:pl-3 rtl:pr-10 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+            className="w-full h-11 pl-10 rtl:pl-3 rtl:pr-10 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-500 placeholder:text-gray-500"
           />
         </div>
 

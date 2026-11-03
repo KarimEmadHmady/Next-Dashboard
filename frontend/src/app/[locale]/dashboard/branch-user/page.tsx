@@ -177,7 +177,7 @@ export default function BranchUserPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={isRTL ? "بحث بالاسم، الإيميل، الهاتف..." : "Search by name, email, phone..."}
-              className="w-full h-11 pl-10 rtl:pl-3 rtl:pr-10 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full h-11 pl-10 rtl:pl-3 rtl:pr-10 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500  text-gray-500 placeholder:text-gray-500"
             />
           </div>
 
@@ -190,7 +190,7 @@ export default function BranchUserPage() {
                 setSelectedStoreId(e.target.value)
                 setPage(1)
               }}
-              className="w-full h-11 pl-9 rtl:pl-3 rtl:pr-9 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+              className="w-full h-11 pl-9 rtl:pl-3 rtl:pr-9 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white text-gray-500 placeholder:text-gray-500"
             >
               <option value="">{isRTL ? "جميع الفروع" : "All Branches"}</option>
               {stores.map((s) => (

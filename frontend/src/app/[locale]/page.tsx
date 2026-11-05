@@ -202,7 +202,7 @@ export default function AuthPage() {
                           dispatch(clearError())
                         }
                       }}
-                      placeholder="admin@roxy.com"
+                      placeholder="admin@cinnabon.com"
                       required
                       disabled={isLoading}
                       className="pl-10 rtl:pl-3 rtl:pr-10 h-12 bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-ring"

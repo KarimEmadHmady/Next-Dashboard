@@ -308,23 +308,23 @@ const BranchManagerView = () => {
         <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-6 flex flex-col sm:flex-row gap-3 items-center justify-between">
           {/* Search */}
           <div className="relative w-full sm:w-80">
-            <Search className="absolute left-3 rtl:left-auto rtl:right-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Search className="absolute left-3 rtl:left-auto rtl:right-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={locale === "ar" ? "ابحث باسم الفرع أو المنطقة..." : "Search by branch or area..."}
-              className="w-full h-10 pl-9 rtl:pl-3 rtl:pr-9 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-500 placeholder:text-gray-500"
+              className="w-full h-10 pl-9 rtl:pl-3 rtl:pr-9 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-800 placeholder:text-gray-500"
             />
           </div>
 
           {/* Area Filter */}
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Filter className="text-gray-400 w-4 h-4 shrink-0" />
+            <Filter className="text-gray-500 w-4 h-4 shrink-0" />
             <select
               value={selectedAreaId}
               onChange={(e) => setSelectedAreaId(e.target.value)}
-              className="h-10 px-3 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 w-full sm:w-48 text-gray-500 placeholder:text-gray-500"
+              className="h-10 px-3 rounded-xl border border-gray-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 w-full sm:w-48 text-gray-800"
             >
               <option value="ALL">{locale === "ar" ? "كل المناطق" : "All Areas"}</option>
               {areas.map((a) => (

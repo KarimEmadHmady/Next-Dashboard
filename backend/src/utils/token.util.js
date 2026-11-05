@@ -6,8 +6,8 @@ dotenv.config();
 
 const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'access_fallback_secret_change_in_production';
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'refresh_fallback_secret_change_in_production';
-const ACCESS_EXPIRES_IN = process.env.JWT_ACCESS_EXPIRES_IN || '15m';
-const REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
+const ACCESS_EXPIRES_IN = process.env.JWT_ACCESS_EXPIRES_IN || '7d';
+const REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '30d';
 
 /**
  * Generate Access Token with role, areaId, storeId, and token_version (tv)
@@ -39,9 +39,9 @@ export const verifyAccessToken = (token) => {
 export const generateRefreshToken = () => {
   const rawToken = crypto.randomBytes(40).toString('hex');
   const tokenHash = hashToken(rawToken);
-  // Calculate expiration (7 days from now)
+  // Calculate expiration (30 days from now)
   const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + 7);
+  expiresAt.setDate(expiresAt.getDate() + 30);
 
   return { rawToken, tokenHash, expiresAt };
 };
@@ -63,7 +63,7 @@ export const setAuthCookies = (res, accessToken, refreshToken) => {
     httpOnly: true,
     secure: isProduction,
     sameSite: 'lax',
-    maxAge: 15 * 60 * 1000, // 15 mins
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     path: '/',
   });
 
@@ -72,7 +72,7 @@ export const setAuthCookies = (res, accessToken, refreshToken) => {
       httpOnly: true,
       secure: isProduction,
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       path: '/',
     });
   }
